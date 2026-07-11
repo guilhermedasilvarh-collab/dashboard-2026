@@ -163,6 +163,8 @@
         let appData = {};
         let currentTabId = "carro";
         let hasChanges = false;
+        let sortState = {};   // { tabKey: { col, dir } }
+        let filterState = {}; // { tabKey: status value ou "ALL" }
 
         // Inicialização
         function initApp() {
@@ -214,29 +216,39 @@
             document.getElementById('btnSave').style.display = 'block';
         }
 
+        // Lista de status na ordem usada para ordenação e filtro.
+        // "SELECIONE" representa itens sem status definido (também cobre o valor legado "").
+        const STATUS_ORDER = ["SELECIONE", "ABERTO", "AGUARDANDO", "STAND BY", "REALIZADO", "CONCLUIDO"];
+
+        function normalizeStatus(value) {
+            let val = value ? value.toString().toUpperCase() : "";
+            return val === "" ? "SELECIONE" : val;
+        }
+
         // Função utilitária para gerar dropdown de Status
         function getStatusSelect(value, rowId, colName) {
-            const statuses = ["CONCLUIDO", "ABERTO", "AGUARDANDO", "REALIZADO", "STAND BY", ""];
-            let val = value ? value.toString().toUpperCase() : "";
-            
-            let colorClass = "status-na";
-            if (val === "CONCLUIDO" || val === "REALIZADO") colorClass = "status-concluido";
-            else if (val === "ABERTO") colorClass = "status-aberto";
-            else if (val === "AGUARDANDO" || val === "STAND BY") colorClass = "status-aguardando";
+            let val = normalizeStatus(value);
+            let colorClass = getStatusClass(val);
 
             let select = `<select class="status-select ${colorClass}" onchange="updateCell('${rowId}', '${colName}', this.value); this.className='status-select ' + getStatusClass(this.value)">`;
-            statuses.forEach(s => {
-                select += `<option value="${s}" ${val === s ? 'selected' : ''}>${s || 'N/A'}</option>`;
+            STATUS_ORDER.forEach(s => {
+                select += `<option value="${s}" ${val === s ? 'selected' : ''}>${s}</option>`;
             });
             select += `</select>`;
             return select;
         }
 
         function getStatusClass(val) {
-            if (val === "CONCLUIDO" || val === "REALIZADO") return "status-concluido";
-            if (val === "ABERTO") return "status-aberto";
-            if (val === "AGUARDANDO" || val === "STAND BY") return "status-aguardando";
+            let v = normalizeStatus(val);
+            if (v === "CONCLUIDO" || v === "REALIZADO") return "status-concluido";
+            if (v === "ABERTO") return "status-aberto";
+            if (v === "AGUARDANDO" || v === "STAND BY") return "status-aguardando";
             return "status-na";
+        }
+
+        // Retorna o nome da coluna de status de uma aba (se existir)
+        function getStatusColumn(tabData) {
+            return tabData.columns.find(c => c.toUpperCase().includes("STATUS"));
         }
 
         // Função utilitária para gerar barra/input de progresso
@@ -256,14 +268,29 @@
 
             for (const key in appData) {
                 const tabData = appData[key];
-                
+                const statusCol = getStatusColumn(tabData);
+                const currentFilter = filterState[key] || "ALL";
+
+                let filterHtml = "";
+                if (statusCol) {
+                    filterHtml = `
+                        <select class="form-select form-select-sm" style="width: auto;" onchange="onFilterChange('${key}', this.value)" title="Filtrar por Status">
+                            <option value="ALL" ${currentFilter === "ALL" ? "selected" : ""}>Todos os Status</option>
+                            ${STATUS_ORDER.map(s => `<option value="${s}" ${currentFilter === s ? "selected" : ""}>${s}</option>`).join("")}
+                        </select>
+                    `;
+                }
+
                 let html = `
                     <div id="tab-${key}" class="tab-content">
                         <div class="content-header">
                             <h2>${tabData.title}</h2>
-                            <button class="btn btn-primary btn-sm" onclick="openAddModal('${key}')">
-                                <i class="bi bi-plus-lg"></i> Novo Item
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                ${filterHtml}
+                                <button class="btn btn-primary btn-sm" onclick="openAddModal('${key}')">
+                                    <i class="bi bi-plus-lg"></i> Novo Item
+                                </button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="table-${key}">
@@ -271,22 +298,36 @@
                                     <tr>
                                         <th style="width: 50px;">Ações</th>
                 `;
-                
+
                 tabData.columns.forEach(col => {
-                    html += `<th>${col}</th>`;
+                    const isStatus = col.toUpperCase().includes("STATUS");
+                    if (isStatus) {
+                        let arrow = "";
+                        if (sortState[key] && sortState[key].col === col) {
+                            arrow = sortState[key].dir === "asc" ? ' <i class="bi bi-arrow-up"></i>' : ' <i class="bi bi-arrow-down"></i>';
+                        }
+                        html += `<th style="cursor: pointer; user-select: none;" onclick="sortTab('${key}', '${col}')" title="Ordenar por ${col}">${col}${arrow}</th>`;
+                    } else {
+                        html += `<th>${col}</th>`;
+                    }
                 });
-                
+
                 html += `           </tr>
                                 </thead>
                                 <tbody>
                 `;
 
-                tabData.rows.forEach((row, index) => {
+                let rowsToRender = tabData.rows;
+                if (statusCol && currentFilter !== "ALL") {
+                    rowsToRender = rowsToRender.filter(r => normalizeStatus(r[statusCol]) === currentFilter);
+                }
+
+                rowsToRender.forEach((row, index) => {
                     html += `<tr id="tr-${row.id}">
                                 <td>
                                     <button class="btn btn-sm btn-outline-danger" onclick="deleteRow('${key}', '${row.id}')" title="Excluir"><i class="bi bi-trash"></i></button>
                                 </td>`;
-                    
+
                     tabData.columns.forEach(col => {
                         let cellContent = "";
                         let isStatus = col.toUpperCase().includes("STATUS");
@@ -300,10 +341,10 @@
                             // Célula editável texto
                             cellContent = `<span class="editable-cell" contenteditable="true" onblur="updateCell('${row.id}', '${col}', this.innerText)">${row[col] || ""}</span>`;
                         }
-                        
+
                         html += `<td>${cellContent}</td>`;
                     });
-                    
+
                     html += `</tr>`;
                 });
 
@@ -329,6 +370,31 @@
                     break;
                 }
             }
+        }
+
+        // Filtrar linhas por Status (inclui itens com status "SELECIONE")
+        function onFilterChange(tabKey, value) {
+            filterState[tabKey] = value;
+            renderAllTabs();
+            showTab(tabKey);
+        }
+
+        // Ordenar linhas por coluna de Status, alternando asc/desc.
+        // Itens com status "SELECIONE" (ou sem status definido) entram na ordenação normalmente.
+        function sortTab(tabKey, col) {
+            const tabData = appData[tabKey];
+            const current = sortState[tabKey];
+            const dir = (current && current.col === col && current.dir === "asc") ? "desc" : "asc";
+            sortState[tabKey] = { col, dir };
+
+            tabData.rows.sort((a, b) => {
+                const cmp = STATUS_ORDER.indexOf(normalizeStatus(a[col])) - STATUS_ORDER.indexOf(normalizeStatus(b[col]));
+                return dir === "asc" ? cmp : -cmp;
+            });
+
+            markChanged();
+            renderAllTabs();
+            showTab(tabKey);
         }
 
         // Deletar linha
@@ -358,11 +424,7 @@
                 
                 if (isStatus) {
                     formHtml += `<select class="form-select" id="input-${col}">
-                                    <option value="ABERTO">ABERTO</option>
-                                    <option value="AGUARDANDO">AGUARDANDO</option>
-                                    <option value="CONCLUIDO">CONCLUÍDO</option>
-                                    <option value="REALIZADO">REALIZADO</option>
-                                    <option value="STAND BY">STAND BY</option>
+                                    ${STATUS_ORDER.map(s => `<option value="${s}">${s}</option>`).join("")}
                                  </select>`;
                 } else if (isProgress) {
                     formHtml += `<input type="number" class="form-control" id="input-${col}" value="0" min="0" max="100">`;
