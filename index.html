@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Painel de Controle 2026</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dashboard 2026">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" href="icon-192.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-body: #f8f9fa;
+            --bg-sidebar: #0f172a;
+            --text-sidebar: #cbd5e1;
+            --text-sidebar-hover: #ffffff;
+            --bg-card: #ffffff;
+            --text-main: #334155;
+            --primary: #3b82f6;
+        }
+        body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; margin: 0; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background-color: var(--bg-sidebar); color: var(--text-sidebar); display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h4 { color: white; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;}
+        .nav-links { flex: 1; overflow-y: auto; padding-top: 10px; }
+        .nav-link { color: var(--text-sidebar); padding: 12px 20px; display: flex; align-items: center; gap: 10px; border-left: 3px solid transparent; cursor: pointer; text-decoration: none; font-size: 0.95rem; }
+        .nav-link:hover, .nav-link.active { background-color: rgba(255,255,255,0.05); color: var(--text-sidebar-hover); border-left-color: var(--primary); }
+        
+        /* Main Content */
+        .main-content { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
+        .tab-content { display: none; background: var(--bg-card); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 20px; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Header */
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
+        .content-header h2 { margin: 0; font-size: 1.5rem; color: #1e293b; }
+
+        /* Controles do cabeçalho: filtro de status + ordenar + novo item */
+        .header-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .filter-select { width: auto; font-size: 0.85rem; }
+
+        /* Destaque no nome do item */
+        .cell-item-name { font-weight: 700; color: #0f172a; font-size: 1rem; }
+
+        /* Destaque sutil na borda esquerda do card/linha, conforme o status */
+        tr[data-status] { border-left: 4px solid transparent; }
+        tr[data-status="status-concluido"] { border-left-color: #10b981; }
+        tr[data-status="status-aberto"] { border-left-color: #3b82f6; }
+        tr[data-status="status-aguardando"] { border-left-color: #f59e0b; }
+        tr[data-status="status-na"] { border-left-color: #cbd5e1; }
+
+        /* No modo tabela (desktop), border-collapse ignora a borda do <tr>, então reforçamos na 1ª célula */
+        tr[data-status] > td:first-child { border-left: 4px solid transparent; }
+        tr[data-status="status-concluido"] > td:first-child { border-left-color: #10b981; }
+        tr[data-status="status-aberto"] > td:first-child { border-left-color: #3b82f6; }
+        tr[data-status="status-aguardando"] > td:first-child { border-left-color: #f59e0b; }
+        tr[data-status="status-na"] > td:first-child { border-left-color: #cbd5e1; }
+        
+        /* Table Controls */
+        .table-responsive { max-height: calc(100vh - 180px); overflow-y: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
+        table { margin: 0; width: 100%; border-collapse: collapse; }
+        table th { position: sticky; top: 0; background: #f8fafc; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 15px; border-bottom: 2px solid #e2e8f0; cursor: pointer; transition: background 0.2s; user-select: none; }
+        table th:hover { background-color: #e2e8f0; color: #1e293b; }
+        table td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-size: 0.95rem; }
+        table tbody tr:hover { background-color: #f1f5f9; }
+        
+        /* Editable Cells */
+        .editable-cell { cursor: text; padding: 6px; border-radius: 4px; transition: 0.2s; min-height: 24px; display: block; width: 100%; border: 1px solid transparent; }
+        .editable-cell:hover { border-color: #cbd5e1; background-color: #fff; }
+        .editable-cell:focus { outline: 2px solid var(--primary); background-color: #fff; border-color: transparent; }
+        
+        /* Status Badges */
+        .status-select { border: none; font-size: 0.75rem; font-weight: 700; border-radius: 20px; padding: 5px 12px; cursor: pointer; outline: none; appearance: none; text-align: center; text-transform: uppercase; }
+        .status-concluido { background-color: #d1fae5; color: #065f46; }
+        .status-aberto { background-color: #dbeafe; color: #1e40af; }
+        .status-aguardando { background-color: #fef3c7; color: #92400e; }
+        .status-na { background-color: #f1f5f9; color: #475569; }
+        
+        /* Progress Input */
+        .progress-wrapper { display: flex; align-items: center; gap: 8px; }
+        .progress-input { width: 65px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right; font-size: 0.9rem; }
+        .progress-input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        
+        /* Medals (Notas) */
+        .nota-medal { display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold; background: #f8fafc; padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: text; min-width: 50px;}
+        .nota-ouro { color: #b45309; background: #fef3c7; border-color: #fde68a; } /* Gold */
+        .nota-prata { color: #334155; background: #f1f5f9; border-color: #cbd5e1; } /* Silver */
+        .nota-bronze { color: #78350f; background: #ffedd5; border-color: #fed7aa; } /* Bronze */
+        
+        /* Floating Buttons */
+        .btn-save-float { position: fixed; bottom: 25px; right: 25px; border-radius: 50px; padding: 12px 24px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); z-index: 1000; display: none; font-weight: bold; font-size: 1rem; transition: opacity 0.3s, transform 0.2s; opacity: 1; }
+        .btn-save-float:hover { transform: translateY(-2px); }
+        
+        /* Actions Column */
+        .action-btns { display: flex; gap: 5px; }
+        .btn-icon { padding: 4px 8px; font-size: 0.9rem; }
+        
+        /* Sort Icons */
+        .sort-icon { font-size: 0.8rem; margin-left: 5px; color: var(--primary); }
+
+        /* Botão hambúrguer (só aparece no mobile) */
+        .btn-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1100;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-sidebar);
+            color: white;
+            font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        /* Fundo escurecido atrás do menu aberto no mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 999;
+        }
+
+        /* ================= MOBILE (celular) ================= */
+        @media (max-width: 768px) {
+            body { overflow: auto; }
+
+            .btn-menu-toggle { display: flex; }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                width: 82vw;
+                max-width: 300px;
+                transition: transform 0.25s ease;
+            }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .sidebar.mobile-open ~ .sidebar-overlay { display: block; }
+
+            .main-content { padding: 70px 12px 90px 12px; width: 100%; }
+
+            .content-header { flex-wrap: wrap; gap: 10px; }
+            .content-header h2 { font-size: 1.15rem; }
+            .content-header .btn { font-size: 0.85rem; padding: 6px 12px; }
+
+            table th, table td { padding: 9px 10px; font-size: 0.85rem; }
+
+            .table-responsive { max-height: none; overflow-x: hidden; border: none; }
+
+            /* Tabela vira uma lista de "cards" empilhados, sem precisar rolar de lado */
+            table thead { display: none; }
+            table, table tbody, table tr, table td { display: block; width: 100%; }
+            table {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            table tr {
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 4px 12px;
+            }
+            table td {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 7px 0;
+                border-bottom: 1px solid #f1f5f9;
+                font-size: 0.85rem;
+            }
+            table tr td:last-child { border-bottom: none; }
+            table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: #94a3b8;
+                font-size: 0.68rem;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                flex-shrink: 0;
+                margin-right: 8px;
+            }
+            table td.td-actions {
+                justify-content: flex-end;
+                padding: 6px 0;
+                border-left: none !important;
+            }
+            table td.td-actions::before { content: none; }
+
+            .editable-cell { text-align: right; padding: 2px 4px; }
+            .status-select { font-size: 0.7rem; padding: 4px 10px; }
+            .progress-wrapper { justify-content: flex-end; }
+            .nota-medal { min-width: 0; padding: 3px 8px; font-size: 0.85rem; }
+
+            .btn-save-float {
+                left: 12px;
+                right: 12px;
+                bottom: 12px;
+                text-align: center;
+                font-size: 0.9rem;
+            }
+
+            .progress-input { width: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-menu-toggle" id="btnMenuToggle" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="btn btn-success btn-save-float" id="btnSave" style="pointer-events: none;">
+        <i class="bi bi-cloud-check-fill"></i> Salvo automaticamente
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4>🚀 Dashboard 2026</h4>
+        </div>
+        <div class="nav-links" id="navLinks">
+            </div>
+        <div class="mt-auto p-3 border-top border-secondary">
+            <button class="btn btn-outline-light w-100 btn-sm mb-2" onclick="exportData()">
+                <i class="bi bi-download"></i> Fazer Backup
+            </button>
+            <div class="text-center text-muted" style="font-size: 0.7rem;">
+                Dados salvos no seu navegador.
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="main-content" id="mainContent"></div>
+
+    <div class="modal fade" id="addModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Novo Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNewItem()">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ==========================================
+        // BASE DE DADOS COMPLETA (Extraída da sua planilha)
+        // ==========================================
+        const initialData = {"metas": {"title": "🎯 Metas 2026", "columns": ["Item", "PRAZO", "Progresso", "STATUS "], "rows": [{"id": "metas_0", "Item": "Fazer as sessões de fono do joao", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_1", "Item": "Emprestimo itau", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_2", "Item": "Emprestimo nubank 1", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_3", "Item": "Emprestimo nubank 2", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_4", "Item": "Trocar porta do banheiro de fora", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_5", "Item": "Pagar dívida do carro", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_6", "Item": "Tirar documento do carro", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_7", "Item": "Tirar DUT do carro", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_8", "Item": "colocar o Joao para fazer natação", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_9", "Item": "Consertar Liquidificador", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_10", "Item": "Trocar óculos do João", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_11", "Item": "Colocar familia no plano de saúde", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_12", "Item": "Limpar e formatar o computador", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_13", "Item": "Pagar o IPTU da casa", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_14", "Item": "Comprar um apartamento", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_15", "Item": "Ajeitar ar do carro", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_16", "Item": "Comprar material da escola do joao", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_17", "Item": "trocar porta da sala", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_18", "Item": "Fazer sessões de psicologia do joao", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_19", "Item": "Meta de ano da academia", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_20", "Item": "Participar de uma corrida", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_21", "Item": "Carteira de habilitação da rafaela", "PRAZO": "", "Progresso": "0", "STATUS ": ""}, {"id": "metas_22", "Item": "Ajeitar janela do quarto", "PRAZO": "", "Progresso": "100", "STATUS ": "CONCLUIDO"}, {"id": "metas_23", "Item": "Ter reserva de emergência - 20 k", "PRAZO": "", "Progresso": "0", "STATUS ": ""}]}, "series": {"title": "📺 Séries", "columns": ["Item", "Tipo", "Streaming", "Progresso", "STATUS ", "NOTA"], "rows": [{"id": "series_0", "Item": "Origem 4ª Temporada", "Tipo": "Terror", "Streaming": "Globo Player", "Progresso": "25", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "series_1", "Item": "Spider Nior", "Tipo": "Aventura", "Streaming": "Amazon", "Progresso": "75", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "series_2", "Item": "Euphoria 3 Temporada", "Tipo": "Drama", "Streaming": "HBO", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "series_3", "Item": "Alice in borderland", "Tipo": "Aventura", "Streaming": "Disney Plus", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "series_4", "Item": "Cavaleiro dos 7 reinos", "Tipo": "Drama", "Streaming": "HBO", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "10"}, {"id": "series_5", "Item": "Demolidor Renascido - 2ª Temporada", "Tipo": "Heroi", "Streaming": "Disney Plus", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "series_6", "Item": "Fallout 2 temporada", "Tipo": "Ficção Científica", "Streaming": "Amazon", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "series_7", "Item": "One Piece 2 temporada", "Tipo": "Aventura", "Streaming": "Netflix", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "series_8", "Item": "Paradise 2 temporada", "Tipo": "Ficção Científica", "Streaming": "Disney Plus", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "series_9", "Item": "Percy Jackson 2 temporada", "Tipo": "Aventura", "Streaming": "Disney Plus", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "series_10", "Item": "The Boy's 5 Temporada", "Tipo": "Drama", "Streaming": "Amazon", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "8"}, {"id": "series_11", "Item": "The Pitt 2 temporada", "Tipo": "Drama", "Streaming": "HBO", "Progresso": "25", "STATUS ": "ABERTO", "NOTA": "9"}, {"id": "series_12", "Item": "Casa do Dragão 3º temporada", "Tipo": "Drama", "Streaming": "HBO", "Progresso": "0", "STATUS ": "", "NOTA": ""}]}, "animes": {"title": "⛩️ Animes", "columns": ["Item", "Tipo", "Streaming", "Progresso", "STATUS ", "NOTA"], "rows": [{"id": "animes_0", "Item": "Jujutsu Kaisen 3 temporada", "Tipo": "Ação", "Streaming": "Crunchroll", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "animes_1", "Item": "Lord of Mysteries", "Tipo": "DarkFantansy", "Streaming": "Crunchroll", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "animes_2", "Item": "O ano que Haiako morreu", "Tipo": "Suspense/ Terror", "Streaming": "Netflix", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "animes_3", "Item": "Invencível 4 temporada", "Tipo": "Aventura", "Streaming": "Amazon", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "animes_4", "Item": "Hell's Paradise 2 temporada", "Tipo": "Aventura", "Streaming": "Crunchroll", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "animes_5", "Item": "Frieren 2 temporada", "Tipo": "Aventura", "Streaming": "Crunchroll", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "animes_6", "Item": "Beastars - O Lobo Bom", "Tipo": "Aventura", "Streaming": "Netflix", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "animes_7", "Item": "Sentenced to Be a Hero", "Tipo": "Aventura", "Streaming": "Crunchroll", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "animes_8", "Item": "Dungeon Mesh", "Tipo": "Aventura", "Streaming": "Netflix", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "animes_9", "Item": "Star wars maul shadow lord", "Tipo": "Aventura", "Streaming": "Star+", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "animes_10", "Item": "ReZero 4ª Temporada", "Tipo": "Aventura", "Streaming": "Crunchroll", "Progresso": "50", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "animes_11", "Item": "Takopi´s original sin", "Tipo": "Ação", "Streaming": "Crunchroll", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "animes_12", "Item": "Dorohedoro 2 temporada", "Tipo": "Fantasia", "Streaming": "Netflix", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "animes_13", "Item": "Bleach Final", "Tipo": "Aventura", "Streaming": "Star+", "Progresso": "0", "STATUS ": "", "NOTA": ""}]}, "filmes": {"title": "🎬 Filmes", "columns": ["Item", "Tipo", "Streaming", "Progresso", "STATUS ", "NOTA"], "rows": [{"id": "filmes_0", "Item": "O menino e a Garça", "Tipo": "Animação", "Streaming": "Netflix", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "filmes_1", "Item": "Silent Hill - Retorno", "Tipo": "Terror", "Streaming": "Cinema", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "5"}, {"id": "filmes_2", "Item": "O devorador de Estrelas", "Tipo": "Sci-Fi", "Streaming": "Cinema", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "10"}, {"id": "filmes_3", "Item": "Telefone Preto 2", "Tipo": "Terror", "Streaming": "Amazon", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "filmes_4", "Item": "Mario Galaxy", "Tipo": "Animação", "Streaming": "Cinema", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "8"}, {"id": "filmes_5", "Item": "Exterminio - Legado dos Ossos", "Tipo": "Terror", "Streaming": "Cinema", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "filmes_6", "Item": "Hament", "Tipo": "Drama", "Streaming": "Amazon", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "filmes_7", "Item": "Cara de um fucinho de outro", "Tipo": "Animação", "Streaming": "Cinema", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "filmes_8", "Item": "Frio nos Ossos", "Tipo": "Terror", "Streaming": "MAX", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "filmes_9", "Item": "Uma batalha após outra", "Tipo": "Drama", "Streaming": "MAX", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "8"}, {"id": "filmes_10", "Item": "Shainsaw Man: Arco Reze", "Tipo": "Animação", "Streaming": "Amazon", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "filmes_11", "Item": "F1 - O filme", "Tipo": "Drama", "Streaming": "Apple", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "filmes_12", "Item": "Obssessão", "Tipo": "Terror", "Streaming": "Cinema", "Progresso": "0", "STATUS ": "", "NOTA": "10"}, {"id": "filmes_13", "Item": "Blackrooms", "Tipo": "Terror", "Streaming": "Cinema", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "filmes_14", "Item": "Avatar 3", "Tipo": "Épico", "Streaming": "Cinema", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "filmes_15", "Item": "Homem aranha 4 - um novo dia", "Tipo": "Heroi", "Streaming": "Cinema", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "filmes_16", "Item": "Vingadores Dooms Day", "Tipo": "Heroi", "Streaming": "Cinema", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "filmes_17", "Item": "Duna 3", "Tipo": "Épico", "Streaming": "Cinema", "Progresso": "0", "STATUS ": "", "NOTA": ""}]}, "jogos": {"title": "🎮 Jogos", "columns": ["Item", "Tipo", "Console ", "Progresso", "STATUS ", "NOTA"], "rows": [{"id": "jogos_0", "Item": "Resident Evil 0", "Tipo": "Terror", "Console ": "Nintendo", "Progresso": "25", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "jogos_1", "Item": "Super metroid dead switch", "Tipo": "Ação / Aventura", "Console ": "Nintendo", "Progresso": "25", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "jogos_2", "Item": "Star wars Outlads", "Tipo": "Ação / Aventura", "Console ": "PS5", "Progresso": "75", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "jogos_3", "Item": "Luigi's Mansion 3", "Tipo": "Ação / Aventura", "Console ": "Nintendo", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "9"}, {"id": "jogos_4", "Item": "Reanimal", "Tipo": "Terror", "Console ": "PS5", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": "10"}, {"id": "jogos_5", "Item": "Mario Odyssei", "Tipo": "Ação / Aventura", "Console ": "Nintendo", "Progresso": "75", "STATUS ": "ABERTO", "NOTA": "10"}, {"id": "jogos_6", "Item": "Pragmata", "Tipo": "Ação / Aventura", "Console ": "PS5", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "jogos_7", "Item": "Mario Wonder", "Tipo": "Ação / Aventura", "Console ": "Nintendo", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "jogos_8", "Item": "Resident Evil Requiem", "Tipo": "Terror", "Console ": "PS5", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "jogos_9", "Item": "Silent Hill f", "Tipo": "Ação / Aventura", "Console ": "XBOX", "Progresso": "100", "STATUS ": "CONCLUIDO", "NOTA": ""}, {"id": "jogos_10", "Item": "Metal Gear Solid 3 Remake", "Tipo": "Ação / Aventura", "Console ": "PS5", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "jogos_11", "Item": "Split Fiction", "Tipo": "Ação / Aventura", "Console ": "PS5", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "jogos_12", "Item": "Wahammer 40k 2", "Tipo": "Ação / Aventura", "Console ": "XBOX", "Progresso": "0", "STATUS ": "AGUARDANDO", "NOTA": ""}, {"id": "jogos_13", "Item": "007 First Figther", "Tipo": "Ação / Aventura", "Console ": "PS5", "Progresso": "0", "STATUS ": "", "NOTA": ""}]}, "livros": {"title": "📚 Livros", "columns": ["Item", "Tipo", "Progresso", "STATUS ", "NOTA"], "rows": [{"id": "livros_0", "Item": "Akira Vol 5", "Tipo": "Mangá", "Progresso": "75", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "livros_1", "Item": "Boa Noite Punpun", "Tipo": "Mangá", "Progresso": "75", "STATUS ": "ABERTO", "NOTA": ""}, {"id": "livros_2", "Item": "Akira Vol 6", "Tipo": "Mangá", "Progresso": "0", "STATUS ": "", "NOTA": ""}, {"id": "livros_3", "Item": "Trilogia dos Espinhos PARTE 2", "Tipo": "Drama/ Romance", "Progresso": "0", "STATUS ": "", "NOTA": ""}]}};
+
+        let appData = {};
+        let currentTabId = "";
+        let currentModalTab = "";
+        let sortConfig = {};
+        let filterConfig = {};
+
+        // ==========================================
+        // INICIALIZAÇÃO
+        // ==========================================
+        function initApp() {
+            const saved = localStorage.getItem('dashboard2026_data_v6');
+            if (saved) {
+                appData = JSON.parse(saved);
+                for(let k in initialData) {
+                    if(!appData[k]) appData[k] = initialData[k];
+                }
+            } else {
+                appData = JSON.parse(JSON.stringify(initialData));
+            }
+            
+            renderMenu();
+            renderAllTabs();
+            showTab(Object.keys(appData)[0]);
+        }
+
+        // ==========================================
+        // RENDERIZAÇÃO
+        // ==========================================
+        function renderMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.innerHTML = "";
+            for (const key in appData) {
+                const tab = appData[key];
+                navLinks.innerHTML += `<a class="nav-link" id="nav-${key}" onclick="showTab('${key}')">${tab.title}</a>`;
+            }
+        }
+
+        function showTab(tabId) {
+            currentTabId = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`nav-${tabId}`).classList.add('active');
+            closeSidebar();
+        }
+
+        // ==========================================
+        // MENU MOBILE (abrir/fechar)
+        // ==========================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('mobile-open');
+        }
+
+        function renderAllTabs() {
+            const container = document.getElementById('mainContent');
+            container.innerHTML = "";
+
+            for (const key in appData) {
+                const tabData = appData[key];
+                const statusCol = tabData.columns.find(c => c.toUpperCase().includes("STATUS"));
+                const currentFilter = filterConfig[key] || "ALL";
+                
+                let html = `
+                    <div id="tab-${key}" class="tab-content">
+                        <div class="content-header">
+                            <h2>${tabData.title}</h2>
+                            <div class="header-controls">
+                                ${statusCol ? `
+                                <select class="form-select form-select-sm filter-select" onchange="filterByStatus('${key}', this.value)">
+                                    <option value="ALL" ${currentFilter === 'ALL' ? 'selected' : ''}>Todos os status</option>
+                                    <option value="CONCLUIDO" ${currentFilter === 'CONCLUIDO' ? 'selected' : ''}>Concluído</option>
+                                    <option value="ABERTO" ${currentFilter === 'ABERTO' ? 'selected' : ''}>Aberto</option>
+                                    <option value="AGUARDANDO" ${currentFilter === 'AGUARDANDO' ? 'selected' : ''}>Aguardando</option>
+                                    <option value="VAZIO" ${currentFilter === 'VAZIO' ? 'selected' : ''}>Não iniciado</option>
+                                </select>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="sortTable('${key}', '${statusCol}')" title="Ordenar por status">
+                                    <i class="bi bi-sort-down"></i> Status
+                                </button>` : ''}
+                                <button class="btn btn-primary" onclick="openAddModal('${key}')">
+                                    <i class="bi bi-plus-lg"></i> Novo Item
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 95px; cursor:default;">Ações</th>
+                `;
+                
+                // Cabeçalhos com lógica de Ordenação
+                tabData.columns.forEach(col => {
+                    let sortIcon = "";
+                    if(sortConfig[key] && sortConfig[key].col === col) {
+                        sortIcon = sortConfig[key].dir === 'asc' ? '<i class="bi bi-caret-up-fill sort-icon"></i>' : '<i class="bi bi-caret-down-fill sort-icon"></i>';
+                    }
+                    html += `<th onclick="sortTable('${key}', '${col}')" title="Clique para ordenar">${col} ${sortIcon}</th>`;
+                });
+                
+                html += `           </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+                // Linhas (aplicando filtro de status, se houver)
+                let rowsToRender = tabData.rows;
+                if (statusCol && currentFilter !== "ALL") {
+                    rowsToRender = tabData.rows.filter(row => {
+                        let v = (row[statusCol] || "").toString().toUpperCase().trim();
+                        if (v === "CONCLUÍDO") v = "CONCLUIDO";
+                        if (currentFilter === "VAZIO") return v === "";
+                        return v === currentFilter;
+                    });
+                }
+
+                rowsToRender.forEach(row => {
+                    let rowStatusClass = statusCol ? getStatusClass(row[statusCol]) : "";
+                    html += `<tr id="tr-${row.id}" data-status="${rowStatusClass}">
+                                <td class="td-actions">
+                                    <div class="action-btns">
+                                        <button class="btn btn-outline-secondary btn-icon" onclick="duplicateRow('${key}', '${row.id}')" title="Duplicar"><i class="bi bi-files"></i></button>
+                                        <button class="btn btn-outline-danger btn-icon" onclick="deleteRow('${key}', '${row.id}')" title="Excluir"><i class="bi bi-trash3"></i></button>
+                                    </div>
+                                </td>`;
+                    
+                    tabData.columns.forEach(col => {
+                        html += `<td data-label="${escapeHtml(col)}">${renderCell(key, row, col)}</td>`;
+                    });
+                    
+                    html += `</tr>`;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            }
+        }
+
+        // ==========================================
+        // ORDENAÇÃO DE COLUNAS (NOVO)
+        // ==========================================
+        // ==========================================
+        // FILTRO POR STATUS
+        // ==========================================
+        function filterByStatus(tabKey, value) {
+            filterConfig[tabKey] = value;
+            renderAllTabs();
+            showTab(tabKey);
+        }
+
+        function sortTable(tabKey, colName) {
+            if (!sortConfig[tabKey]) sortConfig[tabKey] = { col: null, dir: 'asc' };
+            
+            let currentSort = sortConfig[tabKey];
+            
+            // Inverte direção se clicar na mesma coluna
+            if (currentSort.col === colName) {
+                currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.col = colName;
+                currentSort.dir = 'asc';
+            }
+
+            // Prioridade especial para a coluna STATUS: não iniciado (Selecione) primeiro, concluído por último
+            const STATUS_PRIORITY = { "": 0, "ABERTO": 1, "AGUARDANDO": 2, "CONCLUIDO": 3, "REALIZADO": 3 };
+
+            // Lógica de parser para descobrir se é número, texto, status ou vazio
+            const parseVal = (v) => {
+                let colUpper = colName.toUpperCase().trim();
+
+                if (colUpper.includes("STATUS")) {
+                    let s = (v === undefined || v === null) ? "" : String(v).trim().toUpperCase();
+                    if (s === "CONCLUÍDO") s = "CONCLUIDO";
+                    return STATUS_PRIORITY.hasOwnProperty(s) ? STATUS_PRIORITY[s] : 1.5;
+                }
+
+                if(v === undefined || v === null || v === "") return "";
+                let str = String(v).trim();
+                
+                if(colUpper === "NOTA" || colUpper.includes("PROGRESSO") || colUpper === "KM" || colUpper === "VALOR" || colUpper === "#") {
+                    let num = parseFloat(str.replace(/[^0-9.-]+/g,""));
+                    return isNaN(num) ? -999999 : num; // Joga pra baixo se não for número validado
+                }
+                return str.toUpperCase();
+            };
+
+            appData[tabKey].rows.sort((a, b) => {
+                let pA = parseVal(a[colName]);
+                let pB = parseVal(b[colName]);
+                
+                // Joga os vazios sempre para o final da lista (não se aplica à coluna STATUS, que já tem prioridade própria)
+                if(pA === "" && pB !== "") return 1;
+                if(pB === "" && pA !== "") return -1;
+                if(pA === "" && pB === "") return 0;
+
+                if (pA < pB) return currentSort.dir === 'asc' ? -1 : 1;
+                if (pA > pB) return currentSort.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            autoSave();
+            renderAllTabs();
+            showTab(tabKey);
+        }
+
+        // ==========================================
+        // ESCAPE SEGURO (evita quebrar o HTML com < > & " ')
+        // ==========================================
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        // ==========================================
+        // LÓGICA DAS CÉLULAS (Medalhas, Status, Barras)
+        // ==========================================
+        function renderCell(tabKey, row, colName) {
+            let val = row[colName] !== undefined ? row[colName] : "";
+            let safeVal = escapeHtml(val);
+            let colUpper = colName.toUpperCase().trim();
+            
+            // STATUS
+            if (colUpper.includes("STATUS")) {
+                const statuses = ["CONCLUIDO", "ABERTO", "AGUARDANDO", ""];
+                let v = val.toString().toUpperCase().trim();
+                if(v === "CONCLUÍDO") v = "CONCLUIDO";
+                
+                let select = `<select class="status-select ${getStatusClass(v)}" onchange="updateData('${tabKey}', '${row.id}', '${colName}', this.value); this.className='status-select ' + getStatusClass(this.value)">`;
+                statuses.forEach(s => {
+                    let text = s === "" ? "SELECIONE" : s;
+                    select += `<option value="${s}" ${v === s ? 'selected' : ''}>${text}</option>`;
+                });
+                select += `</select>`;
+                return select;
+            }
+            
+            // PROGRESSO
+            if (colUpper.includes("PROGRESSO")) {
+                let num = parseInt(val) || 0;
+                return `
+                    <div class="progress-wrapper">
+                        <input type="number" class="progress-input" value="${num}" min="0" max="100" 
+                        onchange="handleProgressChange('${tabKey}', '${row.id}', '${colName}', this.value)"> %
+                    </div>
+                `;
+            }
+            
+            // NOTA (Medalhas de Ouro, Prata, Bronze)
+            if (colUpper === "NOTA") {
+                let numVal = parseFloat(val);
+                
+                if (!isNaN(numVal) && val !== "") {
+                    if (numVal === 10) {
+                        return `<span class="nota-medal nota-ouro" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText.replace(/[^0-9.]/g, '').trim())">🥇 ${escapeHtml(numVal)}</span>`;
+                    } else if (numVal >= 9) {
+                        return `<span class="nota-medal nota-prata" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText.replace(/[^0-9.]/g, '').trim())">🥈 ${escapeHtml(numVal)}</span>`;
+                    } else if (numVal >= 7 && numVal < 9) {
+                        return `<span class="nota-medal nota-bronze" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText.replace(/[^0-9.]/g, '').trim())">🥉 ${escapeHtml(numVal)}</span>`;
+                    }
+                }
+            }
+            
+            // CÉLULA PADRÃO (Texto editável)
+            let itemClass = colUpper === "ITEM" ? "editable-cell cell-item-name" : "editable-cell";
+            return `<span class="${itemClass}" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText)">${safeVal}</span>`;
+        }
+
+        function getStatusClass(val) {
+            let v = val.toString().toUpperCase().trim();
+            if (v === "CONCLUIDO" || v === "REALIZADO") return "status-concluido";
+            if (v === "ABERTO") return "status-aberto";
+            if (v === "AGUARDANDO" || v === "STAND BY") return "status-aguardando";
+            return "status-na";
+        }
+
+        // ==========================================
+        // ATUALIZAÇÃO E REGRAS DE NEGÓCIO
+        // ==========================================
+        function updateData(tabKey, rowId, colName, value) {
+            let row = appData[tabKey].rows.find(r => r.id === rowId);
+            if (row && row[colName] !== value) {
+                row[colName] = value;
+                autoSave();
+                
+                // Se atualizou nota, re-renderiza para processar a medalha
+                if(colName.toUpperCase().trim() === "NOTA") {
+                    renderAllTabs();
+                    showTab(tabKey);
+                }
+            }
+        }
+
+        // Função Especial para Progresso (Dispara Animação e Status)
+        function handleProgressChange(tabKey, rowId, colName, value) {
+            let row = appData[tabKey].rows.find(r => r.id === rowId);
+            if (row) {
+                let num = parseInt(value) || 0;
+                if(num > 100) num = 100;
+                row[colName] = num.toString();
+                autoSave();
+
+                // Regra: Se chegou a 100%, muda o status para CONCLUIDO
+                if (num === 100) {
+                    let statusCol = appData[tabKey].columns.find(c => c.toUpperCase().includes("STATUS"));
+                    if (statusCol && row[statusCol] !== "CONCLUIDO" && row[statusCol] !== "REALIZADO") {
+                        row[statusCol] = "CONCLUIDO";
+                        triggerConfetti();
+                    }
+                }
+                renderAllTabs();
+                showTab(tabKey);
+            }
+        }
+
+        function triggerConfetti() {
+            if(typeof confetti === "function") {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#3b82f6', '#10b981', '#f59e0b', '#fde047']
+                });
+            }
+        }
+
+        // ==========================================
+        // AÇÕES DA TABELA (Duplicar, Excluir, Adicionar)
+        // ==========================================
+        function duplicateRow(tabKey, rowId) {
+            const tabData = appData[tabKey];
+            const originalRow = tabData.rows.find(r => r.id === rowId);
+            if (originalRow) {
+                let newRow = JSON.parse(JSON.stringify(originalRow));
+                newRow.id = "id_" + Date.now();
+                
+                let index = tabData.rows.findIndex(r => r.id === rowId);
+                tabData.rows.splice(index + 1, 0, newRow);
+                
+                autoSave();
+                renderAllTabs();
+                showTab(tabKey);
+            }
+        }
+
+        function deleteRow(tabKey, rowId) {
+            if(confirm("Tem certeza que deseja excluir este item?")) {
+                appData[tabKey].rows = appData[tabKey].rows.filter(r => r.id !== rowId);
+                autoSave();
+                renderAllTabs();
+                showTab(tabKey);
+            }
+        }
+
+        function openAddModal(tabKey) {
+            currentModalTab = tabKey;
+            const tabData = appData[tabKey];
+            document.getElementById('modalTitle').innerText = `Novo em: ${tabData.title}`;
+            
+            let formHtml = `<form id="addForm">`;
+            tabData.columns.forEach(col => {
+                let colU = col.toUpperCase().trim();
+                formHtml += `<div class="mb-3"><label class="form-label">${col}</label>`;
+                
+                if (colU.includes("STATUS")) {
+                    formHtml += `<select class="form-select" id="input-${col}">
+                                    <option value="ABERTO">ABERTO</option>
+                                    <option value="AGUARDANDO">AGUARDANDO</option>
+                                    <option value="CONCLUIDO">CONCLUÍDO</option>
+                                 </select>`;
+                } else if (colU.includes("PROGRESSO")) {
+                    formHtml += `<input type="number" class="form-control" id="input-${col}" value="0" min="0" max="100">`;
+                } else {
+                    formHtml += `<input type="text" class="form-control" id="input-${col}">`;
+                }
+                
+                formHtml += `</div>`;
+            });
+            formHtml += `</form>`;
+            
+            document.getElementById('modalBody').innerHTML = formHtml;
+            new bootstrap.Modal(document.getElementById('addModal')).show();
+        }
+
+        function saveNewItem() {
+            const tabData = appData[currentModalTab];
+            let newRow = { id: "id_" + Date.now() }; 
+            
+            tabData.columns.forEach(col => {
+                newRow[col] = document.getElementById(`input-${col}`).value;
+            });
+            
+            tabData.rows.push(newRow);
+            autoSave();
+            
+            bootstrap.Modal.getInstance(document.getElementById('addModal')).hide();
+            renderAllTabs();
+            showTab(currentModalTab);
+        }
+
+        // ==========================================
+        // SALVAR AUTOMATICAMENTE (a cada alteração)
+        // ==========================================
+        let autoSaveIndicatorTimeout = null;
+
+        function autoSave() {
+            localStorage.setItem('dashboard2026_data_v6', JSON.stringify(appData));
+
+            const btn = document.getElementById('btnSave');
+            btn.innerHTML = '<i class="bi bi-cloud-check-fill"></i> Salvo automaticamente';
+            btn.style.display = 'block';
+            btn.style.opacity = '1';
+
+            clearTimeout(autoSaveIndicatorTimeout);
+            autoSaveIndicatorTimeout = setTimeout(() => {
+                btn.style.opacity = '0';
+                setTimeout(() => { btn.style.display = 'none'; }, 300);
+            }, 1200);
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = "backup_dashboard_2026_final.json";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        window.onload = initApp;
+
+        // ==========================================
+        // REGISTRO DO SERVICE WORKER (permite instalar como app)
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {
+                    /* falha silenciosa: app continua funcionando normalmente sem cache offline */
+                });
+            });
+        }
+    </script>
+</body>
+</html>
