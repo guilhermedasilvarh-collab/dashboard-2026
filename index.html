@@ -102,16 +102,24 @@
         /* Destaque sutil na borda esquerda do card/linha, conforme o status */
         tr[data-status] { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] { border-left-color: #16A34A; }
-        tr[data-status="status-aberto"] { border-left-color: #2563EB; }
+        tr[data-status="status-aberto"] { border-left-color: #F97316; }
         tr[data-status="status-aguardando"] { border-left-color: #F59E0B; }
         tr[data-status="status-na"] { border-left-color: #CBD1E8; }
 
         /* No modo tabela (desktop), border-collapse ignora a borda do <tr>, então reforçamos na 1ª célula */
         tr[data-status] > td:first-child { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] > td:first-child { border-left-color: #16A34A; }
-        tr[data-status="status-aberto"] > td:first-child { border-left-color: #2563EB; }
+        tr[data-status="status-aberto"] > td:first-child { border-left-color: #F97316; }
         tr[data-status="status-aguardando"] > td:first-child { border-left-color: #F59E0B; }
         tr[data-status="status-na"] > td:first-child { border-left-color: #CBD1E8; }
+
+        /* Itens "Aberto" (em andamento) ganham uma borda laranja bem visível ao redor do card inteiro */
+        tr[data-status="status-aberto"] {
+            outline: 2px solid #F97316;
+            outline-offset: -2px;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+            border-radius: var(--radius-sm);
+        }
 
         /* Itens concluídos ficam com um tom mais apagado, para dar destaque ao que ainda está pendente */
         tr[data-status="status-concluido"] { opacity: 0.55; transition: opacity 0.15s; filter: saturate(0.85); }
@@ -134,7 +142,7 @@
         /* Status Badges */
         .status-select { border: none; font-size: 0.72rem; font-weight: 700; border-radius: 999px; padding: 7px 14px; cursor: pointer; outline: none; appearance: none; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; }
         .status-concluido { background-color: #DCFCE7; color: #15803D; }
-        .status-aberto { background-color: #DBEAFE; color: #1D4ED8; }
+        .status-aberto { background-color: #FFEDD5; color: #C2410C; }
         .status-aguardando { background-color: #FEF3C7; color: #B45309; }
         .status-na { background-color: #F1F2FA; color: #6B6E8F; }
         
