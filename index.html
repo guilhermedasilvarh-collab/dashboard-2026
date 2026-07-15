@@ -112,6 +112,10 @@
         tr[data-status="status-aberto"] > td:first-child { border-left-color: #2563EB; }
         tr[data-status="status-aguardando"] > td:first-child { border-left-color: #F59E0B; }
         tr[data-status="status-na"] > td:first-child { border-left-color: #CBD1E8; }
+
+        /* Itens concluídos ficam com um tom mais apagado, para dar destaque ao que ainda está pendente */
+        tr[data-status="status-concluido"] { opacity: 0.55; transition: opacity 0.15s; filter: saturate(0.85); }
+        tr[data-status="status-concluido"]:hover, tr[data-status="status-concluido"]:focus-within { opacity: 1; filter: none; }
         
         /* Table Controls */
         .table-responsive { max-height: calc(100vh - 200px); overflow-y: auto; border-radius: var(--radius-md); border: 1px solid #ECEDF6; }
@@ -539,7 +543,7 @@
             }
 
             // Prioridade especial para a coluna STATUS: não iniciado (Selecione) primeiro, concluído por último
-            const STATUS_PRIORITY = { "": 0, "ABERTO": 1, "AGUARDANDO": 2, "CONCLUIDO": 3, "REALIZADO": 3 };
+            const STATUS_PRIORITY = { "ABERTO": 0, "": 1, "AGUARDANDO": 2, "CONCLUIDO": 3, "REALIZADO": 3 };
 
             // Lógica de parser para descobrir se é número, texto, status ou vazio
             const parseVal = (v) => {
@@ -681,12 +685,17 @@
                 row[colName] = num.toString();
                 autoSave();
 
-                // Regra: Se chegou a 100%, muda o status para CONCLUIDO
-                if (num === 100) {
-                    let statusCol = appData[tabKey].columns.find(c => c.toUpperCase().includes("STATUS"));
-                    if (statusCol && row[statusCol] !== "CONCLUIDO" && row[statusCol] !== "REALIZADO") {
-                        row[statusCol] = "CONCLUIDO";
-                        triggerConfetti();
+                let statusCol = appData[tabKey].columns.find(c => c.toUpperCase().includes("STATUS"));
+                if (statusCol) {
+                    if (num === 100) {
+                        // Chegou a 100%: marca como concluído
+                        if (row[statusCol] !== "CONCLUIDO" && row[statusCol] !== "REALIZADO") {
+                            row[statusCol] = "CONCLUIDO";
+                            triggerConfetti();
+                        }
+                    } else if (num > 0) {
+                        // Qualquer progresso entre 1% e 99%: marca como aberto (em andamento)
+                        row[statusCol] = "ABERTO";
                     }
                 }
                 renderAllTabs();
