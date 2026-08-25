@@ -232,57 +232,16 @@
             .header-controls { width: 100%; }
             .header-controls .btn, .header-controls select { flex: 1; min-width: 0; }
 
-            table th, table td { padding: 9px 10px; font-size: 0.85rem; }
+            table th, table td { padding: 9px 10px; font-size: 0.85rem; white-space: nowrap; }
 
-            .table-responsive { max-height: none; overflow-x: hidden; border: none; }
+            /* Mantém o formato de tabela (linhas e colunas) também no mobile, com rolagem horizontal */
+            .table-responsive { max-height: none; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid #ECEDF6; }
+            table { min-width: 640px; }
 
-            /* Tabela vira uma lista de "cards" empilhados, sem precisar rolar de lado */
-            table thead { display: none; }
-            table, table tbody, table tr, table td { display: block; width: 100%; }
-            table {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            table tr {
-                background: #fff;
-                border: 1px solid #ECEDF6;
-                border-radius: var(--radius-md);
-                padding: 6px 14px;
-                box-shadow: var(--shadow-soft);
-            }
-            table td {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 10px;
-                padding: 10px 0;
-                border-bottom: 1px solid #F4F5FA;
-                font-size: 0.88rem;
-                min-height: 40px;
-            }
-            table tr td:last-child { border-bottom: none; }
-            table td::before {
-                content: attr(data-label);
-                font-weight: 700;
-                color: #A2A5C4;
-                font-size: 0.66rem;
-                text-transform: uppercase;
-                letter-spacing: 0.4px;
-                flex-shrink: 0;
-                margin-right: 8px;
-            }
-            table td.td-actions {
-                justify-content: flex-end;
-                padding: 8px 0;
-                border-left: none !important;
-            }
-            table td.td-actions::before { content: none; }
-            .btn-icon { padding: 9px 13px; font-size: 1.05rem; }
+            .btn-icon { padding: 8px 11px; font-size: 0.95rem; }
 
-            .editable-cell { text-align: right; padding: 4px 6px; }
+            .editable-cell { padding: 5px 6px; }
             .status-select { font-size: 0.72rem; padding: 8px 14px; }
-            .progress-wrapper { justify-content: flex-end; }
             .progress-track { max-width: 60px; }
             .nota-medal { min-width: 0; padding: 5px 10px; font-size: 0.88rem; }
 
