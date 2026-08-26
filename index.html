@@ -80,7 +80,7 @@
 
         /* Controles do cabeçalho: filtro de status + ordenar + novo item */
         .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-select { width: auto; font-size: 0.85rem; font-weight: 600; border-radius: 999px; padding: 10px 16px; border: 1px solid #E4E5F1; background-color: #FAFAFE; }
+        .filter-select { width: auto; font-size: 0.85rem; font-weight: 600; border-radius: 999px; padding: 10px 16px; border: 1px solid #E4E5F1; background-color: #FAFAFE; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23767892' d='M4 6l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px; padding-right: 28px; }
         .filter-select:focus { border-color: var(--tab-accent-color, var(--primary)); box-shadow: 0 0 0 3px var(--tab-accent-soft); }
 
         /* Botões maiores e mais táteis */
@@ -225,12 +225,14 @@
 
             .tab-content { border-radius: var(--radius-md); padding: 16px; }
 
-            .content-header { flex-wrap: wrap; gap: 12px; margin-bottom: 18px; padding-bottom: 14px; }
-            .content-header h2 { font-size: 1.2rem; }
-            .content-header .header-icon-badge { width: 42px; height: 42px; font-size: 1.25rem; }
-            .content-header .btn { font-size: 0.88rem; padding: 11px 16px; }
+            .content-header { flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; }
+            .content-header h2 { font-size: 1.1rem; }
+            .content-header .header-icon-badge { width: 38px; height: 38px; font-size: 1.1rem; }
+            .content-header .btn { font-size: 0.8rem; padding: 8px 12px; white-space: nowrap; }
             .header-controls { width: 100%; }
-            .header-controls .btn, .header-controls select { flex: 1; min-width: 0; }
+            /* min-width força o botão "Novo Item" a quebrar pra própria linha em vez de espremer e estourar o texto em 2 linhas */
+            .header-controls .btn, .header-controls select { flex: 1 1 130px; min-width: 130px; font-size: 0.8rem; padding: 8px 12px; }
+            .header-controls select.filter-select { padding-right: 26px; }
 
             .table-responsive { max-height: none; overflow-x: hidden; border: none; }
 
@@ -241,67 +243,70 @@
             table tr {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 0 10px;
+                gap: 0 8px;
                 background: #fff;
                 border: 1px solid #ECEDF6;
                 border-radius: var(--radius-sm);
-                padding: 8px 10px 4px;
-                margin-bottom: 8px;
+                padding: 6px 8px 2px;
+                margin-bottom: 6px;
                 box-shadow: var(--shadow-soft);
             }
             table td {
                 display: flex;
                 align-items: center;
-                gap: 5px;
-                padding: 4px 0;
+                gap: 4px;
+                padding: 2px 0;
                 border-bottom: none;
-                font-size: 0.82rem;
+                font-size: 0.72rem;
                 min-height: auto;
                 min-width: 0;
                 overflow: hidden;
+                line-height: 1.25;
             }
             /* Os controles dentro da célula precisam encolher junto com a coluna, em vez de vazar */
             table td > * { min-width: 0; max-width: 100%; }
-            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 8px; }
+            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; font-size: 0.62rem; }
             table td .progress-wrapper { flex: 1; min-width: 0; }
             table td .progress-track { display: none; }
-            table td .progress-input { width: 46px; padding: 4px 3px; font-size: 0.78rem; flex-shrink: 0; }
-            table td .editable-cell { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+            /* Remove as setinhas nativas do input number: no espaço apertado do mobile elas cortavam o valor (ex: "100" virava "10") */
+            table td .progress-input { width: 40px; padding: 2px 3px; font-size: 0.7rem; flex-shrink: 0; -moz-appearance: textfield; }
+            table td .progress-input::-webkit-outer-spin-button,
+            table td .progress-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            table td .editable-cell { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; }
             table td[data-label="Item"] .editable-cell { white-space: normal; }
             table td::before {
                 content: attr(data-label);
                 font-weight: 700;
                 color: #A2A5C4;
-                font-size: 0.6rem;
+                font-size: 0.55rem;
                 text-transform: uppercase;
-                letter-spacing: 0.3px;
+                letter-spacing: 0.2px;
                 flex-shrink: 0;
             }
             /* Nome do item: em destaque, ocupando a linha toda, no topo do bloco */
             table td[data-label="Item"] {
                 grid-column: 1 / -1;
                 order: -1;
-                font-size: 0.95rem;
-                padding-bottom: 6px;
+                padding-bottom: 4px;
                 border-bottom: 1px solid #F4F5FA;
-                margin-bottom: 4px;
+                margin-bottom: 2px;
             }
+            table td[data-label="Item"] .cell-item-name { font-size: 0.85rem; }
             table td[data-label="Item"]::before { content: none; }
             /* Ações: botões pequenos, alinhados à direita, acima do nome do item */
             table td.td-actions {
                 grid-column: 1 / -1;
                 order: -2;
                 justify-content: flex-end;
-                padding: 0 0 4px;
+                padding: 0 0 2px;
             }
             table td.td-actions::before { content: none; }
-            .btn-icon { padding: 6px 9px; font-size: 0.9rem; }
+            .btn-icon { padding: 5px 8px; font-size: 0.8rem; }
 
-            .editable-cell { padding: 3px 4px; }
-            .status-select { font-size: 0.68rem; padding: 6px 10px; }
+            .editable-cell { padding: 2px 3px; }
+            .status-select { font-size: 0.62rem; padding: 4px 8px; }
             .progress-wrapper { flex-wrap: nowrap; }
-            .progress-track { max-width: 36px; min-width: 30px; }
-            .nota-medal { min-width: 0; padding: 4px 8px; font-size: 0.82rem; }
+            .nota-medal { min-width: 0; padding: 3px 7px; font-size: 0.7rem; }
 
             .btn-save-float {
                 left: 14px;
