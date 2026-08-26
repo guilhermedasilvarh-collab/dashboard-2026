@@ -146,12 +146,23 @@
         .status-aguardando { background-color: #FEF3C7; color: #B45309; }
         .status-na { background-color: #F1F2FA; color: #6B6E8F; }
         
-        /* Progress Input + barra visual */
+        /* Progresso: slider arrastável (nada de digitar número) */
         .progress-wrapper { display: flex; align-items: center; gap: 10px; }
-        .progress-track { flex: 1; min-width: 46px; max-width: 90px; height: 8px; background: #ECEDF6; border-radius: 999px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 999px; background: var(--tab-accent-color, var(--primary)); transition: width 0.3s ease; }
-        .progress-input { width: 58px; padding: 6px 8px; border: 1px solid #E4E5F1; border-radius: var(--radius-sm); text-align: right; font-size: 0.88rem; font-weight: 600; }
-        .progress-input:focus { outline: none; box-shadow: 0 0 0 3px var(--tab-accent-soft); border-color: var(--tab-accent-color, var(--primary)); }
+        .progress-slider {
+            flex: 1; min-width: 60px; max-width: 140px; height: 6px; border-radius: 999px;
+            background: linear-gradient(to right, var(--tab-accent-color, var(--primary)) var(--progress-pct, 0%), #ECEDF6 var(--progress-pct, 0%));
+            outline: none; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; margin: 0;
+        }
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; border: 2px solid var(--tab-accent-color, var(--primary)); box-shadow: 0 1px 3px rgba(20,21,55,0.25); cursor: pointer;
+        }
+        .progress-slider::-moz-range-thumb {
+            width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--tab-accent-color, var(--primary));
+            background: #fff; box-shadow: 0 1px 3px rgba(20,21,55,0.25); cursor: pointer;
+        }
+        .progress-slider::-moz-range-track { height: 6px; border-radius: 999px; background: transparent; }
+        .progress-value { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); min-width: 38px; text-align: right; flex-shrink: 0; }
         
         /* Medals (Notas) */
         .nota-medal { display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 700; padding: 6px 12px; border-radius: 999px; border: none; cursor: text; min-width: 50px;}
@@ -251,6 +262,11 @@
                 margin-bottom: 6px;
                 box-shadow: var(--shadow-soft);
             }
+            /* Card todo preenchido pela cor do status, em vez de só um filete na borda */
+            table tr[data-status="status-concluido"] { background: #DCFCE7; border-color: #86EFAC; }
+            table tr[data-status="status-aberto"] { background: #FFEDD5; border-color: #FDBA74; outline: none; box-shadow: none; }
+            table tr[data-status="status-aguardando"] { background: #FEF3C7; border-color: #FDE68A; }
+            table tr[data-status="status-na"] { background: #F1F2FA; border-color: #E4E5F1; }
             table td {
                 display: flex;
                 align-items: center;
@@ -265,13 +281,13 @@
             }
             /* Os controles dentro da célula precisam encolher junto com a coluna, em vez de vazar */
             table td > * { min-width: 0; max-width: 100%; }
-            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; font-size: 0.62rem; }
-            table td .progress-wrapper { flex: 1; min-width: 0; }
-            table td .progress-track { display: none; }
-            /* Remove as setinhas nativas do input number: no espaço apertado do mobile elas cortavam o valor (ex: "100" virava "10") */
-            table td .progress-input { width: 40px; padding: 2px 3px; font-size: 0.7rem; flex-shrink: 0; -moz-appearance: textfield; }
-            table td .progress-input::-webkit-outer-spin-button,
-            table td .progress-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            /* Borda sutil no badge pra ele não se misturar com o card, que agora tem a mesma cor de fundo */
+            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; font-size: 0.62rem; border: 1px solid rgba(20,21,55,0.12); background-color: #fff !important; }
+            table td .progress-wrapper { flex: 1; min-width: 0; gap: 6px; }
+            table td .progress-slider { max-width: none; }
+            table td .progress-slider::-webkit-slider-thumb { width: 14px; height: 14px; }
+            table td .progress-slider::-moz-range-thumb { width: 14px; height: 14px; }
+            table td .progress-value { font-size: 0.68rem; min-width: 28px; }
             table td .editable-cell { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; }
             table td[data-label="Item"] .editable-cell { white-space: normal; }
             table td::before {
@@ -320,7 +336,6 @@
                 font-size: 0.9rem;
             }
 
-            .progress-input { width: 55px; padding: 8px; }
         }
     </style>
 </head>
@@ -653,14 +668,16 @@
                 return select;
             }
             
-            // PROGRESSO
+            // PROGRESSO (slider arrastável, sem digitação)
             if (colUpper.includes("PROGRESSO")) {
                 let num = parseInt(val) || 0;
                 return `
                     <div class="progress-wrapper">
-                        <div class="progress-track"><div class="progress-fill" style="width:${num}%;"></div></div>
-                        <input type="number" class="progress-input" value="${num}" min="0" max="100" 
-                        onchange="handleProgressChange('${tabKey}', '${row.id}', '${colName}', this.value)"> %
+                        <input type="range" class="progress-slider" min="0" max="100" step="5" value="${num}"
+                            style="--progress-pct:${num}%;"
+                            oninput="this.style.setProperty('--progress-pct', this.value + '%'); this.nextElementSibling.textContent = this.value + '%';"
+                            onchange="handleProgressChange('${tabKey}', '${row.id}', '${colName}', this.value)">
+                        <span class="progress-value">${num}%</span>
                     </div>
                 `;
             }
