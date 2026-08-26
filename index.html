@@ -278,6 +278,9 @@
                 min-width: 0;
                 overflow: hidden;
                 line-height: 1.25;
+                /* O Bootstrap pinta um fundo próprio em cada célula (via --bs-table-bg); isso cobria a cor
+                   do status que fica no <tr>. Forçando transparente pra cor do card aparecer inteira. */
+                background-color: transparent !important;
             }
             /* Os controles dentro da célula precisam encolher junto com a coluna, em vez de vazar */
             table td > * { min-width: 0; max-width: 100%; }
