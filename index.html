@@ -303,6 +303,10 @@
             table td.td-actions::before { content: none; }
             .btn-icon { padding: 5px 8px; font-size: 0.8rem; }
 
+            /* Bloco do item mais objetivo: some com Tipo e Streaming, mantém Progresso, Status e Nota */
+            table td[data-label="Tipo"],
+            table td[data-label="Streaming"] { display: none; }
+
             .editable-cell { padding: 2px 3px; }
             .status-select { font-size: 0.62rem; padding: 4px 8px; }
             .progress-wrapper { flex-wrap: nowrap; }
