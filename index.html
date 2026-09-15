@@ -103,24 +103,30 @@
         /* Destaque sutil na borda esquerda do card/linha, conforme o status */
         tr[data-status] { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] { border-left-color: #16A34A; }
-        tr[data-status="status-aberto"] { border-left-color: #F97316; }
+        tr[data-status="status-aberto"] { border-left-color: #EAB308; }
         tr[data-status="status-aguardando"] { border-left-color: #F59E0B; }
         tr[data-status="status-na"] { border-left-color: #CBD1E8; }
 
         /* No modo tabela (desktop), border-collapse ignora a borda do <tr>, então reforçamos na 1ª célula */
         tr[data-status] > td:first-child { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] > td:first-child { border-left-color: #16A34A; }
-        tr[data-status="status-aberto"] > td:first-child { border-left-color: #F97316; }
+        tr[data-status="status-aberto"] > td:first-child { border-left-color: #EAB308; }
         tr[data-status="status-aguardando"] > td:first-child { border-left-color: #F59E0B; }
         tr[data-status="status-na"] > td:first-child { border-left-color: #CBD1E8; }
 
-        /* Itens "Aberto" (em andamento) ganham uma borda laranja bem visível ao redor do card inteiro */
-        tr[data-status="status-aberto"] {
-            outline: 2px solid #F97316;
-            outline-offset: -2px;
-            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
-            border-radius: var(--radius-sm);
-        }
+        /* Preenchimento cheio pela cor do status, tanto na tabela do desktop quanto no card do mobile */
+        tr[data-status="status-concluido"] { background: #DCFCE7; }
+        tr[data-status="status-aberto"] { background: #FEF08A; }
+        tr[data-status="status-aguardando"] { background: #FEF3C7; }
+        tr[data-status="status-na"] { background: #F1F2FA; }
+
+        /* O Bootstrap pinta um fundo próprio (branco) em cada célula da tabela; forçamos
+           transparente pra cor da linha (pelo status) aparecer por igual em toda a área */
+        table td { background-color: transparent !important; }
+
+        /* Borda fina no badge de status pra ele não se misturar com o fundo da linha/card,
+           que agora usa cores parecidas */
+        .status-select { border: 1px solid rgba(20,21,55,0.12); background-color: #fff !important; }
 
         /* Itens concluídos ficam com um tom mais apagado, para dar destaque ao que ainda está pendente */
         tr[data-status="status-concluido"] { opacity: 0.55; transition: opacity 0.15s; filter: saturate(0.85); }
@@ -269,11 +275,12 @@
                 margin-bottom: 6px;
                 box-shadow: var(--shadow-soft);
             }
-            /* Card todo preenchido pela cor do status, em vez de só um filete na borda */
-            table tr[data-status="status-concluido"] { background: #DCFCE7; border-color: #86EFAC; }
-            table tr[data-status="status-aberto"] { background: #FDE047; border-color: #EAB308; outline: none; box-shadow: none; }
-            table tr[data-status="status-aguardando"] { background: #FEF3C7; border-color: #FDE68A; }
-            table tr[data-status="status-na"] { background: #F1F2FA; border-color: #E4E5F1; }
+            /* A cor de preenchimento já é global; aqui só ajustamos a borda do "envelope"
+               do card (o desktop usa só um filete à esquerda, o mobile usa borda inteira) */
+            table tr[data-status="status-concluido"] { border-color: #86EFAC; }
+            table tr[data-status="status-aberto"] { border-color: #EAB308; }
+            table tr[data-status="status-aguardando"] { border-color: #FDE68A; }
+            table tr[data-status="status-na"] { border-color: #E4E5F1; }
             table td {
                 display: flex;
                 align-items: center;
@@ -292,7 +299,7 @@
             /* Os controles dentro da célula precisam encolher junto com a coluna, em vez de vazar */
             table td > * { min-width: 0; max-width: 100%; }
             /* Borda sutil no badge pra ele não se misturar com o card, que agora tem a mesma cor de fundo */
-            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; font-size: 0.62rem; border: 1px solid rgba(20,21,55,0.12); background-color: #fff !important; }
+            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; font-size: 0.62rem; }
             table td .progress-wrapper { flex: 1; min-width: 0; gap: 6px; }
             table td .progress-slider { max-width: none; }
             table td .progress-slider::-webkit-slider-thumb { width: 14px; height: 14px; }
