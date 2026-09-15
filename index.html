@@ -454,7 +454,7 @@
                             localStorage.setItem('dashboard2026_data_v6', JSON.stringify(appData));
                             renderMenu();
                             renderAllTabs();
-                            const tabToShow = (currentTabId && appData[currentTabId]) ? currentTabId : Object.keys(appData)[0];
+                            const tabToShow = (currentTabId && appData[currentTabId]) ? currentTabId : orderedTabKeys()[0];
                             showTab(tabToShow);
                         } else {
                             // Nuvem ainda vazia (primeiro uso): sobe os dados locais atuais como ponto de partida
@@ -474,6 +474,15 @@
                 console.warn('Sincronização na nuvem indisponível; seguindo só com dados locais.', err);
                 setSyncStatusText('Sincronização na nuvem indisponível.');
             }
+        }
+
+        // Ordem fixa das abas no menu, independente da ordem em que o localStorage/nuvem
+        // devolve as chaves (o Realtime Database, por exemplo, reordena objetos por chave).
+        const TAB_ORDER = ["metas", "series", "animes", "filmes", "jogos", "livros"];
+        function orderedTabKeys() {
+            const known = TAB_ORDER.filter(k => appData[k]);
+            const extra = Object.keys(appData).filter(k => !TAB_ORDER.includes(k));
+            return known.concat(extra);
         }
 
         // Cada área da vida ganha sua própria cor de identidade
@@ -509,7 +518,7 @@
             
             renderMenu();
             renderAllTabs();
-            showTab(Object.keys(appData)[0]);
+            showTab(orderedTabKeys()[0]);
 
             initCloudSync();
         }
@@ -520,12 +529,12 @@
         function renderMenu() {
             const navLinks = document.getElementById('navLinks');
             navLinks.innerHTML = "";
-            for (const key in appData) {
+            orderedTabKeys().forEach((key) => {
                 const tab = appData[key];
                 const accent = getAccent(key);
                 const { icon, label } = splitTitle(tab.title);
                 navLinks.innerHTML += `<a class="nav-link" id="nav-${key}" style="--tab-accent-color:${accent.color}; --tab-accent-soft:${accent.soft};" onclick="showTab('${key}')"><span class="nav-icon">${icon}</span><span>${escapeHtml(label)}</span></a>`;
-            }
+            });
         }
 
         function showTab(tabId) {
@@ -552,13 +561,19 @@
             const container = document.getElementById('mainContent');
             container.innerHTML = "";
 
-            for (const key in appData) {
+            orderedTabKeys().forEach((key) => {
                 const tabData = appData[key];
                 const statusCol = tabData.columns.find(c => c.toUpperCase().includes("STATUS"));
                 const currentFilter = filterConfig[key] || "ALL";
                 const accent = getAccent(key);
                 const { icon, label } = splitTitle(tabData.title);
-                
+
+                // Ordem padrão por status (Aberto, Aguardando, Selecione, Concluído), só enquanto
+                // o usuário não tiver escolhido outra ordenação manualmente nesta sessão
+                if (statusCol && !sortConfig[key]) {
+                    tabData.rows.sort((a, b) => statusSortPriority(a[statusCol]) - statusSortPriority(b[statusCol]));
+                }
+
                 let html = `
                     <div id="tab-${key}" class="tab-content" style="--tab-accent-color:${accent.color}; --tab-accent-soft:${accent.soft};">
                         <div class="content-header">
@@ -642,12 +657,20 @@
                     </div>
                 `;
                 container.innerHTML += html;
-            }
+            });
         }
 
         // ==========================================
         // ORDENAÇÃO DE COLUNAS (NOVO)
         // ==========================================
+        // Ordem padrão/de referência da coluna Status: Aberto, Aguardando, Selecione (vazio), Concluído
+        const STATUS_PRIORITY = { "ABERTO": 0, "AGUARDANDO": 1, "": 2, "CONCLUIDO": 3, "REALIZADO": 3 };
+        function statusSortPriority(v) {
+            let s = (v === undefined || v === null) ? "" : String(v).trim().toUpperCase();
+            if (s === "CONCLUÍDO") s = "CONCLUIDO";
+            return STATUS_PRIORITY.hasOwnProperty(s) ? STATUS_PRIORITY[s] : 1.5;
+        }
+
         // ==========================================
         // FILTRO POR STATUS
         // ==========================================
@@ -670,17 +693,12 @@
                 currentSort.dir = 'asc';
             }
 
-            // Prioridade especial para a coluna STATUS: não iniciado (Selecione) primeiro, concluído por último
-            const STATUS_PRIORITY = { "ABERTO": 0, "": 1, "AGUARDANDO": 2, "CONCLUIDO": 3, "REALIZADO": 3 };
-
             // Lógica de parser para descobrir se é número, texto, status ou vazio
             const parseVal = (v) => {
                 let colUpper = colName.toUpperCase().trim();
 
                 if (colUpper.includes("STATUS")) {
-                    let s = (v === undefined || v === null) ? "" : String(v).trim().toUpperCase();
-                    if (s === "CONCLUÍDO") s = "CONCLUIDO";
-                    return STATUS_PRIORITY.hasOwnProperty(s) ? STATUS_PRIORITY[s] : 1.5;
+                    return statusSortPriority(v);
                 }
 
                 if(v === undefined || v === null || v === "") return "";
