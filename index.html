@@ -362,8 +362,8 @@
             <button class="btn btn-outline-light w-100 btn-sm mb-2" onclick="exportData()" style="background: rgba(255,255,255,0.06); color: #fff;">
                 <i class="bi bi-download"></i> Fazer Backup
             </button>
-            <div class="text-center" style="font-size: 0.7rem; color: var(--text-sidebar);">
-                Dados salvos no seu navegador.
+            <div class="text-center" id="syncStatusText" style="font-size: 0.7rem; color: var(--text-sidebar);">
+                Salvo só neste aparelho.
             </div>
         </div>
     </div>
@@ -423,8 +423,20 @@
         let cloudRef = null;
         let cloudReady = false;
 
+        // Mostra o status real da sincronização no rodapé do menu (não só no botão que
+        // pisca depois de uma edição), pra dar pra conferir mesmo sem mexer em nada.
+        function setSyncStatusText(text) {
+            const el = document.getElementById('syncStatusText');
+            if (el) el.textContent = text;
+        }
+
         function initCloudSync() {
-            if (typeof firebase === "undefined") return; // sem internet/CDN: segue só com localStorage
+            if (typeof firebase === "undefined") {
+                setSyncStatusText('Salvo só neste aparelho (sem conexão com a nuvem).');
+                return; // sem internet/CDN: segue só com localStorage
+            }
+
+            setSyncStatusText('Conectando à nuvem...');
 
             try {
                 firebase.initializeApp(firebaseConfig);
@@ -433,6 +445,7 @@
                 firebase.auth().onAuthStateChanged((user) => {
                     if (!user) return;
                     cloudReady = true;
+                    setSyncStatusText('Sincronizado entre seus aparelhos.');
 
                     cloudRef.on("value", (snapshot) => {
                         const cloudData = snapshot.val();
@@ -447,14 +460,19 @@
                             // Nuvem ainda vazia (primeiro uso): sobe os dados locais atuais como ponto de partida
                             cloudRef.set(appData);
                         }
+                    }, (err) => {
+                        console.warn('Falha ao ler dados da nuvem.', err);
+                        setSyncStatusText('Falha ao conectar à nuvem (veja o console).');
                     });
                 });
 
                 firebase.auth().signInAnonymously().catch((err) => {
                     console.warn('Não foi possível conectar à sincronização na nuvem; seguindo só com dados locais.', err);
+                    setSyncStatusText('Falha ao autenticar na nuvem (veja o console).');
                 });
             } catch (err) {
                 console.warn('Sincronização na nuvem indisponível; seguindo só com dados locais.', err);
+                setSyncStatusText('Sincronização na nuvem indisponível.');
             }
         }
 
