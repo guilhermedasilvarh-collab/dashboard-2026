@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard2026-cache-v1';
+const CACHE_NAME = 'dashboard2026-cache-v2';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
@@ -39,6 +39,28 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const isDocument = event.request.mode === 'navigate' || event.request.destination === 'document';
+
+  if (isDocument) {
+    // O HTML principal carrega toda a lógica do app (inclusive a sincronização
+    // com a nuvem). Prioriza sempre a versão mais nova da rede; só usa o cache
+    // como reserva se o aparelho estiver offline.
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Demais arquivos (ícones, manifest, bibliotecas externas) mudam raramente:
+  // cache primeiro pra abrir rápido, atualizando em segundo plano.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request)
