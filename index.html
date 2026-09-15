@@ -177,7 +177,13 @@
         /* Actions Column */
         .action-btns { display: flex; gap: 6px; }
         .btn-icon { padding: 7px 11px; font-size: 0.95rem; border-radius: var(--radius-sm); }
-        
+
+        /* Alça de arrastar: segura e arrasta pra reordenar o card/linha na lista */
+        .drag-handle { cursor: grab; touch-action: none; }
+        .drag-handle:active { cursor: grabbing; }
+        tr.dragging { opacity: 0.6; box-shadow: 0 10px 26px rgba(20,21,55,0.28); position: relative; z-index: 50; background: #fff !important; }
+        tr.drag-disabled-scroll { touch-action: none; }
+
         /* Sort Icons */
         .sort-icon { font-size: 0.8rem; margin-left: 5px; color: var(--tab-accent-color, var(--primary)); }
 
@@ -605,7 +611,7 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 95px; cursor:default;">Ações</th>
+                                        <th style="width: 130px; cursor:default;">Ações</th>
                 `;
                 
                 // Cabeçalhos com lógica de Ordenação
@@ -638,6 +644,7 @@
                     html += `<tr id="tr-${row.id}" data-status="${rowStatusClass}">
                                 <td class="td-actions">
                                     <div class="action-btns">
+                                        <button class="btn btn-outline-secondary btn-icon drag-handle" onpointerdown="startDrag(event, '${key}', '${row.id}')" title="Segurar e arrastar para reordenar"><i class="bi bi-grip-vertical"></i></button>
                                         <button class="btn btn-outline-secondary btn-icon" onclick="duplicateRow('${key}', '${row.id}')" title="Duplicar"><i class="bi bi-files"></i></button>
                                         <button class="btn btn-outline-danger btn-icon" onclick="deleteRow('${key}', '${row.id}')" title="Excluir"><i class="bi bi-trash3"></i></button>
                                     </div>
@@ -860,6 +867,65 @@
                     colors: ['#6C5CE7', '#16A34A', '#F59E0B', '#DB2777']
                 });
             }
+        }
+
+        // ==========================================
+        // ARRASTAR PARA REORDENAR (segurar a alça e arrastar o card/linha)
+        // ==========================================
+        let dragState = null;
+
+        function startDrag(event, tabKey, rowId) {
+            event.preventDefault();
+            const tr = document.getElementById('tr-' + rowId);
+            if (!tr) return;
+
+            dragState = { tabKey, tr, tbody: tr.parentElement, pointerId: event.pointerId };
+            tr.classList.add('dragging');
+
+            document.addEventListener('pointermove', onDragMove);
+            document.addEventListener('pointerup', onDragEnd);
+            document.addEventListener('pointercancel', onDragEnd);
+        }
+
+        function onDragMove(event) {
+            if (!dragState) return;
+            event.preventDefault();
+
+            const { tr, tbody } = dragState;
+            const y = event.clientY;
+            const siblings = Array.from(tbody.children).filter(el => el !== tr);
+
+            for (const sib of siblings) {
+                const rect = sib.getBoundingClientRect();
+                if (y > rect.top && y < rect.bottom) {
+                    const before = y < rect.top + rect.height / 2;
+                    tbody.insertBefore(tr, before ? sib : sib.nextSibling);
+                    break;
+                }
+            }
+        }
+
+        function onDragEnd() {
+            if (!dragState) return;
+            const { tabKey, tr, tbody } = dragState;
+
+            tr.classList.remove('dragging');
+            document.removeEventListener('pointermove', onDragMove);
+            document.removeEventListener('pointerup', onDragEnd);
+            document.removeEventListener('pointercancel', onDragEnd);
+
+            // Aplica a nova ordem visual (do DOM) de volta pro array de dados
+            const newOrderIds = Array.from(tbody.children).map(el => el.id.replace('tr-', ''));
+            const tabData = appData[tabKey];
+            const rowsById = {};
+            tabData.rows.forEach(r => { rowsById[r.id] = r; });
+            tabData.rows = newOrderIds.map(id => rowsById[id]).filter(Boolean);
+
+            // Conta como uma ordenação manual: a ordem padrão por status não deve mais sobrescrever essa aba
+            sortConfig[tabKey] = { col: '__manual_drag__', dir: 'asc' };
+
+            autoSave();
+            dragState = null;
         }
 
         // ==========================================
