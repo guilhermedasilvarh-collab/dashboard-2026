@@ -390,6 +390,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <script>
         // ==========================================
         // BASE DE DADOS COMPLETA (Extraída da sua planilha)
@@ -401,6 +404,59 @@
         let currentModalTab = "";
         let sortConfig = {};
         let filterConfig = {};
+
+        // ==========================================
+        // SINCRONIZAÇÃO NA NUVEM (Firebase Realtime Database)
+        // Deixa os dados iguais em qualquer aparelho, em vez de presos no
+        // localStorage de cada navegador. Login anônimo só pra passar pela
+        // regra de segurança do banco; não pede senha nem tela de login.
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6VoDm816XTTNiMW_hsuEI3QHezdg8q7s",
+            authDomain: "dashboard-2026-19660.firebaseapp.com",
+            databaseURL: "https://dashboard-2026-19660-default-rtdb.firebaseio.com",
+            projectId: "dashboard-2026-19660",
+            storageBucket: "dashboard-2026-19660.firebasestorage.app",
+            messagingSenderId: "1080362311212",
+            appId: "1:1080362311212:web:c8a71d4cc2d8c3d5a6bb89"
+        };
+        let cloudRef = null;
+        let cloudReady = false;
+
+        function initCloudSync() {
+            if (typeof firebase === "undefined") return; // sem internet/CDN: segue só com localStorage
+
+            try {
+                firebase.initializeApp(firebaseConfig);
+                cloudRef = firebase.database().ref("dashboard2026");
+
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (!user) return;
+                    cloudReady = true;
+
+                    cloudRef.on("value", (snapshot) => {
+                        const cloudData = snapshot.val();
+                        if (cloudData) {
+                            appData = cloudData;
+                            localStorage.setItem('dashboard2026_data_v6', JSON.stringify(appData));
+                            renderMenu();
+                            renderAllTabs();
+                            const tabToShow = (currentTabId && appData[currentTabId]) ? currentTabId : Object.keys(appData)[0];
+                            showTab(tabToShow);
+                        } else {
+                            // Nuvem ainda vazia (primeiro uso): sobe os dados locais atuais como ponto de partida
+                            cloudRef.set(appData);
+                        }
+                    });
+                });
+
+                firebase.auth().signInAnonymously().catch((err) => {
+                    console.warn('Não foi possível conectar à sincronização na nuvem; seguindo só com dados locais.', err);
+                });
+            } catch (err) {
+                console.warn('Sincronização na nuvem indisponível; seguindo só com dados locais.', err);
+            }
+        }
 
         // Cada área da vida ganha sua própria cor de identidade
         const TAB_ACCENTS = {
@@ -436,6 +492,8 @@
             renderMenu();
             renderAllTabs();
             showTab(Object.keys(appData)[0]);
+
+            initCloudSync();
         }
 
         // ==========================================
@@ -851,7 +909,14 @@
             localStorage.setItem('dashboard2026_data_v6', JSON.stringify(appData));
 
             const btn = document.getElementById('btnSave');
-            btn.innerHTML = '<i class="bi bi-cloud-check-fill"></i> Salvo automaticamente';
+            if (cloudReady && cloudRef) {
+                cloudRef.set(appData).catch((err) => {
+                    console.warn('Falha ao sincronizar com a nuvem; fica salvo local e tenta de novo na próxima alteração.', err);
+                });
+                btn.innerHTML = '<i class="bi bi-cloud-check-fill"></i> Sincronizado na nuvem';
+            } else {
+                btn.innerHTML = '<i class="bi bi-cloud-slash"></i> Salvo só neste aparelho';
+            }
             btn.style.display = 'block';
             btn.style.opacity = '1';
 
