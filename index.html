@@ -96,8 +96,9 @@
         .btn-success { background: #16A34A; }
         .btn-sm { padding: 8px 14px; font-size: 0.82rem; border-radius: 999px; }
 
-        /* Destaque no nome do item */
-        .cell-item-name { font-weight: 700; color: #16172E; font-size: 1.02rem; font-family: var(--font-display); }
+        /* Destaque no nome do item: negrito só nos itens com status Aberto */
+        .cell-item-name { font-weight: 500; color: #16172E; font-size: 1.02rem; font-family: var(--font-display); }
+        tr[data-status="status-aberto"] .cell-item-name { font-weight: 700; }
 
         /* Destaque sutil na borda esquerda do card/linha, conforme o status */
         tr[data-status] { border-left: 4px solid transparent; }
