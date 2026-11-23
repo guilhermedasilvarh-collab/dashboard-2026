@@ -96,27 +96,35 @@
         .btn-success { background: #16A34A; }
         .btn-sm { padding: 8px 14px; font-size: 0.82rem; border-radius: 999px; }
 
-        /* Destaque no nome do item: negrito só nos itens com status Aberto */
+        /* Destaque no nome do item: negrito e um "pingo" aceso só nos itens com status Aberto */
         .cell-item-name { font-weight: 500; color: #16172E; font-size: 1.02rem; font-family: var(--font-display); }
         tr[data-status="status-aberto"] .cell-item-name { font-weight: 700; }
+        tr[data-status="status-aberto"] .cell-item-name::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 8px;
+            border-radius: 50%;
+            background: #EAB308;
+            box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25);
+            vertical-align: middle;
+        }
 
         /* Destaque sutil na borda esquerda do card/linha, conforme o status */
         tr[data-status] { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] { border-left-color: #16A34A; }
-        tr[data-status="status-aberto"] { border-left-color: #F59E0B; }
         tr[data-status="status-aguardando"] { border-left-color: #93C5FD; }
         tr[data-status="status-na"] { border-left-color: #CBD1E8; }
 
         /* No modo tabela (desktop), border-collapse ignora a borda do <tr>, então reforçamos na 1ª célula */
         tr[data-status] > td:first-child { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] > td:first-child { border-left-color: #16A34A; }
-        tr[data-status="status-aberto"] > td:first-child { border-left-color: #F59E0B; }
         tr[data-status="status-aguardando"] > td:first-child { border-left-color: #93C5FD; }
         tr[data-status="status-na"] > td:first-child { border-left-color: #CBD1E8; }
 
-        /* Preenchimento cheio pela cor do status, tanto na tabela do desktop quanto no card do mobile */
+        /* Preenchimento cheio pela cor do status (Aberto fica sem preenchimento: só o pingo acima sinaliza) */
         tr[data-status="status-concluido"] { background: #DCFCE7; }
-        tr[data-status="status-aberto"] { background: #FEF3C7; }
         tr[data-status="status-aguardando"] { background: #DBEAFE; }
         tr[data-status="status-na"] { background: #F1F2FA; }
 
@@ -278,7 +286,6 @@
             /* A cor de preenchimento já é global; aqui só ajustamos a borda do "envelope"
                do card (o desktop usa só um filete à esquerda, o mobile usa borda inteira) */
             table tr[data-status="status-concluido"] { border-color: #86EFAC; }
-            table tr[data-status="status-aberto"] { border-color: #FDE68A; }
             table tr[data-status="status-aguardando"] { border-color: #93C5FD; }
             table tr[data-status="status-na"] { border-color: #E4E5F1; }
             table td {
