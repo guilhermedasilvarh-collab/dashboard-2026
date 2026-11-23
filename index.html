@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Painel de Controle 2026</title>
+    <title>Dashboard 2026</title>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -19,392 +19,429 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        /* ===== Base: mesma identidade do Dashboard 2026, com volume de jogo ("Arcade suave") ===== */
         :root {
             --bg-body: #F1F2FA;
             --bg-sidebar: #14152B;
-            --text-sidebar: #9A9DC2;
-            --text-sidebar-hover: #ffffff;
+            --surface-game: #23244A;
+            --surface-game-line: #2B2C4D;
+            --text-sidebar: #B8BBDD;
             --bg-card: #ffffff;
             --text-main: #2B2D42;
-            --text-muted: #767892;
+            --text-heading: #16172E;
+            --text-muted: #55577A;
+            --border: #E4E5F1;
+            --border-subtle: #ECEDF6;
             --primary: #6C5CE7;
             --primary-dark: #5642D6;
+            --primary-shadow: #4632C4;
             --primary-soft: #EEEBFD;
-            --radius-lg: 18px;
-            --radius-md: 14px;
-            --radius-sm: 10px;
-            --shadow-soft: 0 4px 18px rgba(20, 21, 55, 0.06);
-            --shadow-md: 0 10px 28px rgba(20, 21, 55, 0.12);
+            --xp: #F59E0B;
+            --xp-light: #FCD34D;
+            --xp-shadow: #B45309;
+            --xp-text: #92400E;
+            --xp-soft: #FEF3C7;
+            --fire: #EA580C;
+            --fire-light: #FDBA74;
+            --fire-bg: #2A1A10;
+            --shield: #93C5FD;
+            --shield-bg: #1C2A4A;
+            --r-sm: 12px;
+            --r-md: 16px;
+            --r-lg: 18px;
+            --r-xl: 22px;
             --font-display: 'Sora', 'Segoe UI', sans-serif;
             --font-body: 'Inter', 'Segoe UI', sans-serif;
-            /* cor da aba ativa; sobrescrita dinamicamente por aba via inline style */
-            --tab-accent: var(--primary);
-            --tab-accent-soft: var(--primary-soft);
+            /* cor do mundo atual; cada mundo sobrescreve via style */
+            --w: var(--primary);
+            --w-dark: var(--primary-dark);
+            --w-shadow: var(--primary-shadow);
+            --w-soft: var(--primary-soft);
         }
         * { box-sizing: border-box; }
-        body { background-color: var(--bg-body); color: var(--text-main); font-family: var(--font-body); display: flex; height: 100vh; overflow: hidden; margin: 0; -webkit-font-smoothing: antialiased; }
-        h1, h2, h3, h4, h5, .btn, .sidebar-header h4 { font-family: var(--font-display); }
-
+        html, body { margin: 0; }
+        body { background: var(--bg-body); color: var(--text-main); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4, h5 { font-family: var(--font-display); color: var(--text-heading); letter-spacing: -0.01em; margin: 0; }
+        button { font: inherit; }
         ::selection { background: var(--primary-soft); color: var(--primary-dark); }
-        :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+        :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+        .ic { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-        /* Sidebar */
-        .sidebar { width: 266px; background-color: var(--bg-sidebar); color: var(--text-sidebar); display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; box-shadow: 2px 0 20px rgba(0,0,0,0.15); }
-        .sidebar-header { padding: 24px 22px 18px; }
-        .sidebar-header h4 { color: white; margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; letter-spacing: -0.01em; }
-        .sidebar-header .logo-badge { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), #9C6BFF); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(108,92,231,0.4); }
-        .sidebar-header .logo-sub { display: block; font-size: 0.72rem; color: var(--text-sidebar); font-weight: 500; margin-top: 2px; }
-        .nav-links { flex: 1; overflow-y: auto; padding: 8px 12px; display: flex; flex-direction: column; gap: 3px; }
-        .nav-link { color: var(--text-sidebar); padding: 12px 14px; display: flex; align-items: center; gap: 12px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; font-size: 0.92rem; font-weight: 600; transition: background 0.15s, color 0.15s, transform 0.1s; }
-        .nav-link .nav-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: rgba(255,255,255,0.06); transition: 0.15s; }
-        .nav-link:hover { background-color: rgba(255,255,255,0.06); color: var(--text-sidebar-hover); }
-        .nav-link:active { transform: scale(0.98); }
-        .nav-link.active { background-color: rgba(255,255,255,0.09); color: var(--text-sidebar-hover); }
-        .nav-link.active .nav-icon { background: var(--tab-accent-color, var(--primary)); box-shadow: 0 2px 10px color-mix(in srgb, var(--tab-accent-color, var(--primary)) 60%, transparent); }
-        
-        /* Main Content */
-        .main-content { flex: 1; padding: 28px; overflow-y: auto; position: relative; }
-        .tab-content { display: none; background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 24px; animation: fadeIn 0.35s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Header */
-        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #ECEDF6; flex-wrap: wrap; gap: 14px; }
-        .content-header-title { display: flex; align-items: center; gap: 14px; }
-        .content-header .header-icon-badge { width: 46px; height: 46px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: var(--tab-accent-soft); flex-shrink: 0; }
-        .content-header h2 { margin: 0; font-size: 1.4rem; color: #16172E; font-weight: 700; letter-spacing: -0.01em; }
-        .content-header .item-count { margin: 0; font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        .app { display: flex; min-height: 100vh; }
 
-        /* Controles do cabeçalho: filtro de status + ordenar + novo item */
-        .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-select { width: auto; font-size: 0.85rem; font-weight: 600; border-radius: 999px; padding: 10px 16px; border: 1px solid #E4E5F1; background-color: #FAFAFE; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23767892' d='M4 6l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px; padding-right: 28px; }
-        .filter-select:focus { border-color: var(--tab-accent-color, var(--primary)); box-shadow: 0 0 0 3px var(--tab-accent-soft); }
+        /* ===== Menu lateral (computador) ===== */
+        .sidebar { width: 272px; flex-shrink: 0; background: var(--bg-sidebar); color: var(--text-sidebar); display: flex; flex-direction: column; gap: 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 14px; }
+        .brand { display: flex; align-items: center; gap: 10px; color: #fff; font: 800 1.05rem var(--font-display); padding: 0 6px; }
+        .brand .logo { width: 38px; height: 38px; border-radius: 12px; background: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 var(--primary-shadow); }
+        .brand small { display: block; font: 600 0.72rem var(--font-body); color: var(--text-sidebar); margin-top: 2px; }
+        .side-hud { background: var(--surface-game); border-radius: var(--r-md); padding: 12px; display: flex; flex-direction: column; gap: 8px; color: #fff; border: 0; text-align: left; cursor: pointer; width: 100%; }
+        .side-hud .sh-top { display: flex; align-items: center; gap: 10px; }
+        .side-hud .sh-lv { width: 40px; height: 40px; border-radius: 12px; background: var(--xp); color: #14152B; font: 800 1rem var(--font-display); display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 var(--xp-shadow); }
+        .side-hud .sh-name { font: 700 0.9rem var(--font-display); }
+        .side-hud .sh-sub { font-size: 0.74rem; font-weight: 600; color: var(--text-sidebar); }
+        .side-label { font: 800 0.68rem var(--font-body); letter-spacing: 0.8px; text-transform: uppercase; color: #8F92C4; padding: 6px 12px 0; }
+        .side-nav { display: flex; flex-direction: column; gap: 3px; }
+        .nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: transparent; color: var(--text-sidebar); padding: 8px 10px; border-radius: var(--r-sm); font: 600 0.92rem var(--font-body); text-align: left; cursor: pointer; transition: background 0.15s, color 0.15s; }
+        .nav-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .nav-btn.active { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-btn .nb-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); }
+        .nav-btn.active .nb-icon { background: var(--w); color: #fff; }
+        .nav-btn .nb-lv { margin-left: auto; font: 800 0.72rem var(--font-display); color: #8F92C4; }
+        .side-foot { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .side-foot .sync-status-text { font-size: 0.72rem; text-align: center; color: var(--text-sidebar); }
+        .btn-ghost-dark { border: 0; width: 100%; background: rgba(255,255,255,0.06); color: #fff; border-radius: var(--r-sm); padding: 9px 12px; font: 700 0.82rem var(--font-body); cursor: pointer; }
+        .btn-ghost-dark:hover { background: rgba(255,255,255,0.12); }
 
-        /* Botões maiores e mais táteis */
-        .btn { border-radius: var(--radius-sm); font-weight: 600; padding: 10px 18px; font-size: 0.9rem; transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease; border: none; }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary, .btn-outline-secondary, .btn-outline-danger { border: none; }
-        .btn-primary { background: var(--tab-accent-color, var(--primary)); box-shadow: 0 4px 14px color-mix(in srgb, var(--tab-accent-color, var(--primary)) 45%, transparent); }
-        .btn-primary:hover, .btn-primary:focus { background: var(--tab-accent-color, var(--primary)); filter: brightness(0.92); box-shadow: 0 6px 18px color-mix(in srgb, var(--tab-accent-color, var(--primary)) 55%, transparent); }
-        .btn-outline-secondary { background: #F1F2FA; color: #55577A; }
-        .btn-outline-secondary:hover { background: #E4E5F1; color: #2B2D42; }
-        .btn-outline-danger { background: #FDECEC; color: #D64545; }
-        .btn-outline-danger:hover { background: #FBD9D9; color: #B93030; }
-        .btn-success { background: #16A34A; }
-        .btn-sm { padding: 8px 14px; font-size: 0.82rem; border-radius: 999px; }
+        /* ===== Área principal ===== */
+        .main-content { flex: 1; min-width: 0; padding: 28px; }
+        .view { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+        .sec-head h2 { font-size: 1.12rem; font-weight: 700; }
+        .link-btn { border: 0; background: none; color: var(--primary-dark); font: 700 0.85rem var(--font-body); cursor: pointer; padding: 4px; }
+        .muted { color: var(--text-muted); }
+        .card-w { background: #fff; border-radius: var(--r-lg); box-shadow: 0 3px 0 var(--border); }
 
-        /* Destaque no nome do item: negrito e um "pingo" aceso só nos itens com status Aberto */
-        .cell-item-name { font-weight: 500; color: #16172E; font-size: 1.02rem; font-family: var(--font-display); }
-        tr[data-status="status-aberto"] .cell-item-name { font-weight: 700; }
-        tr[data-status="status-aberto"] .cell-item-name::before {
-            content: "";
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            margin-right: 8px;
-            border-radius: 50%;
-            background: #EAB308;
-            box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25);
-            vertical-align: middle;
-        }
+        /* ===== Botões que afundam ===== */
+        .btn-3d { border: 0; border-radius: 14px; padding: 10px 16px; min-height: 42px; font: 800 0.88rem var(--font-display); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; transition: transform 0.08s, box-shadow 0.08s, filter 0.12s; text-decoration: none; }
+        .btn-3d:active { transform: translateY(4px); box-shadow: 0 0 0 transparent !important; }
+        .btn-3d:hover { filter: brightness(1.05); }
+        .btn-primary3 { background: var(--primary); color: #fff; box-shadow: 0 4px 0 var(--primary-shadow); }
+        .btn-w { background: var(--w-dark); color: #fff; box-shadow: 0 4px 0 var(--w-shadow); }
+        .btn-xp { background: var(--xp); color: #14152B; box-shadow: 0 4px 0 var(--xp-shadow); }
+        .btn-dark { background: var(--surface-game); color: #fff; box-shadow: 0 4px 0 #0A0B1A; }
+        .btn-light3 { background: #fff; color: var(--text-main); box-shadow: 0 0 0 2px var(--border), 0 4px 0 var(--border); }
+        .btn-xs { padding: 6px 11px; min-height: 34px; font-size: 0.78rem; border-radius: var(--r-sm); }
+        .icon-btn { border: 0; width: 42px; height: 42px; border-radius: var(--r-sm); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.14); color: #fff; flex-shrink: 0; }
 
-        /* Destaque sutil na borda esquerda do card/linha, conforme o status */
-        tr[data-status] { border-left: 4px solid transparent; }
-        tr[data-status="status-concluido"] { border-left-color: #16A34A; }
-        tr[data-status="status-aguardando"] { border-left-color: #93C5FD; }
-        tr[data-status="status-na"] { border-left-color: #CBD1E8; }
+        /* ===== Ficha do jogador ===== */
+        .player-card { background: var(--bg-sidebar); color: #fff; border-radius: var(--r-xl); padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 6px 0 #0A0B1A; }
+        .pc-top { display: flex; align-items: center; gap: 12px; }
+        .avatar { position: relative; width: 60px; height: 60px; border-radius: 18px; background: var(--primary); display: flex; align-items: center; justify-content: center; font: 800 1.6rem var(--font-display); flex-shrink: 0; box-shadow: 0 4px 0 var(--primary-shadow); }
+        .lv-badge { position: absolute; right: -7px; bottom: -7px; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 999px; background: var(--xp); color: #14152B; border: 3px solid var(--bg-sidebar); font: 800 0.78rem/22px var(--font-display); text-align: center; }
+        .pc-name { flex: 1; min-width: 0; }
+        .pc-nome { font: 700 1.15rem var(--font-display); }
+        .pc-sub { font-size: 0.84rem; font-weight: 600; color: var(--text-sidebar); }
+        .pc-sub b { color: var(--xp-light); }
+        .pc-chips { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+        .chip-fire { display: inline-flex; align-items: center; gap: 5px; background: var(--fire-bg); color: var(--fire-light); border-radius: 999px; padding: 5px 11px; font: 800 0.82rem var(--font-display); white-space: nowrap; }
+        .chip-shield { display: inline-flex; align-items: center; gap: 4px; background: var(--shield-bg); color: var(--shield); border-radius: 999px; padding: 4px 10px; font: 700 0.75rem var(--font-body); white-space: nowrap; }
+        .xp-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; font-weight: 700; color: var(--text-sidebar); flex-wrap: wrap; }
+        .xp-row .xp-num { color: var(--xp-light); }
+        .xp-bar { height: 14px; border-radius: 999px; background: var(--surface-game-line); overflow: hidden; }
+        .xp-bar > div { height: 100%; border-radius: 999px; background: var(--xp); box-shadow: inset 0 -4px 0 #D97706; transition: width 0.4s ease-out; }
+        .mini-bar { display: block; height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+        .mini-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--w); }
 
-        /* No modo tabela (desktop), border-collapse ignora a borda do <tr>, então reforçamos na 1ª célula */
-        tr[data-status] > td:first-child { border-left: 4px solid transparent; }
-        tr[data-status="status-concluido"] > td:first-child { border-left-color: #16A34A; }
-        tr[data-status="status-aguardando"] > td:first-child { border-left-color: #93C5FD; }
-        tr[data-status="status-na"] > td:first-child { border-left-color: #CBD1E8; }
+        /* ===== Missões ===== */
+        .missions { padding: 4px 14px; }
+        .mission { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #F1F2FA; }
+        .mission:last-child { border-bottom: 0; }
+        .m-check { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid #CBD1E8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
+        .mission.done .m-check { background: #16A34A; border-color: #16A34A; color: #fff; }
+        .m-text { flex: 1; font-size: 0.9rem; font-weight: 600; }
+        .m-text small { display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .mission.done .m-text { color: var(--text-muted); text-decoration: line-through; }
+        .xp-pill { background: var(--xp-soft); color: var(--xp-text); border-radius: 999px; padding: 3px 9px; font: 800 0.74rem var(--font-display); white-space: nowrap; }
+        .mission.done .xp-pill { background: #DCFCE7; color: #15803D; }
+        .chest { display: flex; align-items: center; gap: 10px; padding: 12px 0 10px; }
+        .chest-icon { width: 40px; height: 40px; border-radius: var(--r-sm); background: #F1F2FA; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        .chest.open .chest-icon { background: var(--xp); color: #14152B; }
+        .pips { display: flex; gap: 4px; margin-top: 6px; }
+        .pips span { flex: 1; height: 8px; border-radius: 999px; background: var(--border); }
+        .pips span.on { background: var(--xp); }
 
-        /* Preenchimento cheio pela cor do status (Aberto fica sem preenchimento: só o pingo acima sinaliza) */
+        /* ===== Mundos ===== */
+        .worlds-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .world-tile { border: 0; background: #fff; border-radius: var(--r-md); box-shadow: 0 3px 0 var(--border); padding: 12px; display: flex; flex-direction: column; gap: 6px; text-align: left; cursor: pointer; transition: transform 0.08s; }
+        .world-tile:active { transform: translateY(3px); box-shadow: 0 0 0 transparent; }
+        .wt-icon { width: 36px; height: 36px; border-radius: 11px; background: var(--w-soft); color: var(--w-dark); display: flex; align-items: center; justify-content: center; }
+        .wt-name { font: 700 0.95rem var(--font-display); color: var(--text-heading); }
+        .wt-meta { font-size: 0.75rem; font-weight: 700; color: var(--w-dark); }
+        .world-tile.big { padding: 16px; gap: 8px; }
+        .world-tile.big .wt-icon { width: 46px; height: 46px; border-radius: 14px; }
+
+        .continue-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+        .ci-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--w-soft); color: var(--w-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ci-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .ci-title { font: 700 0.95rem var(--font-display); color: var(--text-heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ci-meta { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+        .stack { display: flex; flex-direction: column; gap: 10px; }
+
+        /* ===== Cabeçalho do mundo ===== */
+        .world-head { background: var(--w-dark); color: #fff; border-radius: var(--r-xl); padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 6px 0 var(--w-shadow); }
+        .wh-top { display: flex; align-items: center; gap: 12px; }
+        .wh-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--w-soft); color: var(--w-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .world-head h1 { color: #fff; font-size: 1.45rem; font-weight: 800; }
+        .wh-sub { font-size: 0.84rem; font-weight: 600; opacity: 0.92; }
+        .wh-xp { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; font-weight: 700; flex-wrap: wrap; }
+        .wh-bar { height: 12px; border-radius: 999px; background: rgba(0,0,0,0.25); overflow: hidden; }
+        .wh-bar > div { height: 100%; border-radius: 999px; background: #fff; transition: width 0.4s ease-out; }
+        .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+        .chip { border: 0; border-radius: 999px; padding: 8px 14px; font: 800 0.8rem var(--font-display); background: #fff; color: var(--text-main); box-shadow: 0 3px 0 var(--border); cursor: pointer; white-space: nowrap; }
+        .chip[aria-pressed="true"] { background: var(--bg-sidebar); color: #fff; box-shadow: 0 3px 0 #000; }
+
+        /* ===== Tabela / cards dos itens ===== */
+        .list-box { background: #fff; border-radius: var(--r-lg); box-shadow: 0 3px 0 var(--border); overflow: hidden; }
+        .table-responsive { overflow-x: auto; }
+        table.items { margin: 0; width: 100%; border-collapse: collapse; }
+        table.items th { position: sticky; top: 0; background: #FAFAFE; z-index: 2; color: var(--text-muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; padding: 13px 14px; border-bottom: 2px solid var(--border-subtle); cursor: pointer; user-select: none; white-space: nowrap; }
+        table.items th:hover { background: #F1F2FA; color: var(--text-heading); }
+        table.items td { padding: 10px 14px; border-bottom: 1px solid #F1F2FA; vertical-align: middle; font-size: 0.92rem; background: transparent; }
+        table.items tbody tr { transition: background-color 0.15s; border-left: 4px solid transparent; }
+        table.items tbody tr > td:first-child { border-left: 4px solid transparent; }
         tr[data-status="status-concluido"] { background: #DCFCE7; }
+        tr[data-status="status-concluido"] > td:first-child { border-left-color: #16A34A; }
         tr[data-status="status-aguardando"] { background: #DBEAFE; }
-        tr[data-status="status-na"] { background: #F1F2FA; }
-
-        /* O Bootstrap pinta um fundo próprio (branco) em cada célula da tabela; forçamos
-           transparente pra cor da linha (pelo status) aparecer por igual em toda a área */
-        table td { background-color: transparent !important; }
-
-        /* Borda fina no badge de status pra ele não se misturar com o fundo da linha/card,
-           que agora usa cores parecidas */
-        .status-select { border: 1px solid rgba(20,21,55,0.12); background-color: #fff !important; }
-
-        /* Itens concluídos ficam com um tom mais apagado, para dar destaque ao que ainda está pendente */
-        tr[data-status="status-concluido"] { opacity: 0.55; transition: opacity 0.15s; filter: saturate(0.85); }
-        tr[data-status="status-concluido"]:hover, tr[data-status="status-concluido"]:focus-within { opacity: 1; filter: none; }
-        
-        /* Table Controls */
-        .table-responsive { max-height: calc(100vh - 200px); overflow-y: auto; border-radius: var(--radius-md); border: 1px solid #ECEDF6; }
-        table { margin: 0; width: 100%; border-collapse: collapse; }
-        table th { position: sticky; top: 0; background: #FAFAFE; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.04); color: var(--text-muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; padding: 14px 16px; border-bottom: 2px solid #ECEDF6; cursor: pointer; transition: background 0.2s; user-select: none; }
-        table th:hover { background-color: #F1F2FA; color: #16172E; }
-        table td { padding: 13px 16px; border-bottom: 1px solid #F1F2FA; vertical-align: middle; font-size: 0.92rem; }
-        table tbody tr { transition: background-color 0.15s; }
-        table tbody tr:hover { background-color: #FAFAFE; }
-        
-        /* Editable Cells */
-        .editable-cell { cursor: text; padding: 7px 8px; border-radius: 8px; transition: 0.15s; min-height: 24px; display: block; width: 100%; border: 1px solid transparent; }
-        .editable-cell:hover { border-color: #E4E5F1; background-color: #FAFAFE; }
-        .editable-cell:focus { outline: none; box-shadow: 0 0 0 3px var(--tab-accent-soft); background-color: #fff; border-color: var(--tab-accent-color, var(--primary)); }
-        
-        /* Status Badges */
-        .status-select { border: none; font-size: 0.72rem; font-weight: 700; border-radius: 999px; padding: 7px 14px; cursor: pointer; outline: none; appearance: none; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; }
-        .status-concluido { background-color: #DCFCE7; color: #15803D; }
-        .status-aberto { background-color: #FFEDD5; color: #C2410C; }
-        .status-aguardando { background-color: #FEF3C7; color: #B45309; }
-        .status-na { background-color: #F1F2FA; color: #6B6E8F; }
-        
-        /* Progresso: slider arrastável (nada de digitar número) */
-        .progress-wrapper { display: flex; align-items: center; gap: 10px; }
-        .progress-slider {
-            flex: 1; min-width: 60px; max-width: 140px; height: 6px; border-radius: 999px;
-            background: linear-gradient(to right, var(--tab-accent-color, var(--primary)) var(--progress-pct, 0%), #ECEDF6 var(--progress-pct, 0%));
-            outline: none; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; margin: 0;
-        }
-        .progress-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
-            background: #fff; border: 2px solid var(--tab-accent-color, var(--primary)); box-shadow: 0 1px 3px rgba(20,21,55,0.25); cursor: pointer;
-        }
-        .progress-slider::-moz-range-thumb {
-            width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--tab-accent-color, var(--primary));
-            background: #fff; box-shadow: 0 1px 3px rgba(20,21,55,0.25); cursor: pointer;
-        }
-        .progress-slider::-moz-range-track { height: 6px; border-radius: 999px; background: transparent; }
-        .progress-value { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); min-width: 38px; text-align: right; flex-shrink: 0; }
-        
-        /* Medals (Notas) */
-        .nota-medal { display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 700; padding: 6px 12px; border-radius: 999px; border: none; cursor: text; min-width: 50px;}
-        .nota-ouro { color: #92400E; background: #FEF3C7; } /* Gold */
-        .nota-prata { color: #3F3F5C; background: #EEEFF7; } /* Silver */
-        .nota-bronze { color: #7C2D12; background: #FFEDD5; } /* Bronze */
-        
-        /* Floating Buttons */
-        .btn-save-float { position: fixed; bottom: 25px; right: 25px; border-radius: 999px; padding: 13px 22px; box-shadow: var(--shadow-md); z-index: 1000; display: none; font-weight: 700; font-size: 0.92rem; transition: opacity 0.3s, transform 0.2s; opacity: 1; background: #16A34A; color: white; }
-        .btn-save-float:hover { transform: translateY(-2px); }
-        
-        /* Actions Column */
+        tr[data-status="status-aguardando"] > td:first-child { border-left-color: #93C5FD; }
+        tr[data-status="status-na"] { background: #F8F8FC; }
+        tr[data-status="status-na"] > td:first-child { border-left-color: #CBD1E8; }
+        tr[data-status="status-concluido"] { opacity: 0.6; transition: opacity 0.15s; }
+        tr[data-status="status-concluido"]:hover, tr[data-status="status-concluido"]:focus-within { opacity: 1; }
+        .sort-icon { font-size: 0.8rem; margin-left: 5px; color: var(--w-dark); }
         .action-btns { display: flex; gap: 6px; }
-        .btn-icon { padding: 7px 11px; font-size: 0.95rem; border-radius: var(--radius-sm); }
-
-        /* Alça de arrastar: segura e arrasta pra reordenar o card/linha na lista */
+        .btn-icon { border: 0; width: 36px; height: 36px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: #F1F2FA; color: var(--text-muted); box-shadow: 0 3px 0 var(--border); transition: transform 0.08s; }
+        .btn-icon:active { transform: translateY(3px); box-shadow: none; }
+        .btn-icon.danger { background: #FDECEC; color: #B93030; box-shadow: 0 3px 0 #FBD9D9; }
+        .btn-icon.boss { background: var(--fire-bg); color: var(--fire-light); box-shadow: 0 3px 0 #000; }
         .drag-handle { cursor: grab; touch-action: none; }
         .drag-handle:active { cursor: grabbing; }
-        tr.dragging { opacity: 0.6; box-shadow: 0 10px 26px rgba(20,21,55,0.28); position: relative; z-index: 50; background: #fff !important; }
-        tr.drag-disabled-scroll { touch-action: none; }
+        tr.dragging { opacity: 0.7; box-shadow: 0 10px 26px rgba(20,21,55,0.28); position: relative; z-index: 50; background: #fff !important; }
 
-        /* Sort Icons */
-        .sort-icon { font-size: 0.8rem; margin-left: 5px; color: var(--tab-accent-color, var(--primary)); }
+        .editable-cell { cursor: text; padding: 6px 8px; border-radius: 8px; min-height: 24px; display: block; width: 100%; border: 1px solid transparent; transition: 0.15s; }
+        .editable-cell:hover { border-color: var(--border); background: #FAFAFE; }
+        .editable-cell:focus { outline: none; box-shadow: 0 0 0 3px var(--w-soft); background: #fff; border-color: var(--w-dark); }
+        .cell-item-name { font: 600 1rem var(--font-display); color: var(--text-heading); }
+        tr[data-status="status-aberto"] .cell-item-name { font-weight: 800; }
+        tr[data-status="status-aberto"] .cell-item-name::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #EAB308; box-shadow: 0 0 0 3px rgba(234,179,8,0.25); vertical-align: middle; }
 
-        /* Botão hambúrguer (só aparece no mobile) */
-        .btn-menu-toggle {
-            display: none;
-            position: fixed;
-            top: 14px;
-            left: 14px;
-            z-index: 1100;
-            width: 46px;
-            height: 46px;
-            border-radius: var(--radius-sm);
-            border: none;
-            background: var(--bg-sidebar);
-            color: white;
-            font-size: 1.3rem;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-md);
-            transition: transform 0.12s;
-        }
-        .btn-menu-toggle:active { transform: scale(0.92); }
+        .status-select { border: 1px solid rgba(20,21,55,0.12); font-size: 0.72rem; font-weight: 800; border-radius: 999px; padding: 7px 14px; cursor: pointer; appearance: none; -webkit-appearance: none; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; font-family: var(--font-body); }
+        .status-concluido { background-color: #DCFCE7; color: #15803D; }
+        .status-aberto { background-color: #FFEDD5; color: #C2410C; }
+        .status-aguardando { background-color: #DBEAFE; color: #1D4ED8; }
+        .status-na { background-color: #fff; color: #55577A; }
 
-        /* Fundo escurecido atrás do menu aberto no mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15,16,35,0.5);
-            backdrop-filter: blur(2px);
-            z-index: 999;
-        }
+        .phase-wrap { display: flex; align-items: center; gap: 10px; min-width: 230px; }
+        .segs { display: flex; gap: 4px; flex: 1; min-width: 96px; }
+        .seg { flex: 1; height: 30px; border: 0; padding: 0; background: transparent; cursor: pointer; position: relative; }
+        .seg::after { content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 12px; border-radius: 999px; background: #E4E5F1; }
+        .seg.on::after { background: var(--w); box-shadow: inset 0 -3px 0 var(--w-dark); }
+        .segs-static { display: flex; gap: 4px; }
+        .segs-static span { flex: 1; height: 10px; border-radius: 999px; background: #E4E5F1; }
+        .segs-static span.on { background: var(--w); box-shadow: inset 0 -3px 0 var(--w-dark); }
+        .phase-label { font: 700 0.78rem var(--font-body); color: var(--text-muted); white-space: nowrap; min-width: 54px; }
 
-        /* ================= MOBILE (celular) ================= */
+        .medal { display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-weight: 800; padding: 5px 12px; border-radius: 999px; cursor: text; min-width: 48px; border: 2px solid transparent; outline: none; }
+        .medal.r-lendario { color: #92400E; background: #FEF3C7; border-color: #F59E0B; }
+        .medal.r-epico { color: #3F3F5C; background: #EEEFF7; border-color: #A2A5C4; }
+        .medal.r-raro { color: #7C2D12; background: #FFEDD5; border-color: #EA580C; }
+
+        /* ===== Coleção (cards) ===== */
+        .collection { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .ccard { border: 3px solid #CBD1E8; background: #fff; border-radius: var(--r-md); padding: 10px; min-height: 128px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; text-align: left; cursor: pointer; transition: transform 0.1s; }
+        .ccard:hover { transform: translateY(-2px); }
+        .ccard .cc-tier { font: 800 0.66rem var(--font-body); letter-spacing: 0.5px; }
+        .ccard .cc-title { font: 700 0.85rem/1.25 var(--font-display); color: var(--text-heading); }
+        .ccard .cc-nota { font: 800 0.82rem var(--font-display); }
+        .r-lendario.ccard, .rcard.r-lendario { border-color: #F59E0B; background: #FEF3C7; }
+        .r-epico.ccard, .rcard.r-epico { border-color: #A2A5C4; background: #EEEFF7; }
+        .r-raro.ccard, .rcard.r-raro { border-color: #EA580C; background: #FFEDD5; }
+        .r-mundo.ccard, .rcard.r-mundo { border-color: var(--w); background: var(--w-soft); }
+        .t-mundo { color: var(--w-dark); }
+        .t-lendario { color: #92400E; } .t-epico { color: #3F3F5C; } .t-raro { color: #7C2D12; } .t-comum { color: #55577A; }
+
+        /* ===== Chefões ===== */
+        .boss-card { background: var(--bg-sidebar); color: #fff; border-radius: var(--r-xl); padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 6px 0 #0A0B1A; }
+        .boss-top { display: flex; gap: 12px; align-items: center; }
+        .boss-icon { width: 56px; height: 56px; border-radius: 16px; background: var(--fire-bg); color: var(--fire-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .boss-badge { background: #C2410C; color: #fff; border-radius: 999px; padding: 3px 9px; font: 800 0.68rem var(--font-body); letter-spacing: 0.6px; }
+        .boss-name { color: #fff; font: 800 1.15rem/1.2 var(--font-display); margin-top: 6px; }
+        .hp-row { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; }
+        .hp-bar { height: 18px; border-radius: 999px; background: var(--surface-game-line); overflow: hidden; }
+        .hp-bar > div { height: 100%; border-radius: 999px; background: var(--fire); box-shadow: inset 0 -5px 0 #C2410C; transition: width 0.4s ease-out; }
+        .boss-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+        .boss-step { background: var(--surface-game); border-radius: var(--r-sm); padding: 8px; font: 800 0.75rem var(--font-display); color: var(--text-sidebar); border: 2px solid transparent; }
+        .boss-step span { display: block; font: 600 0.72rem var(--font-body); margin-top: 2px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .boss-step.done { background: #15803D; color: #fff; }
+        .boss-step.cur { border-color: var(--xp-light); color: var(--xp-light); }
+        .boss-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .boss-foot .bf-text { flex: 1; min-width: 160px; font-size: 0.8rem; font-weight: 600; color: var(--text-sidebar); }
+        .boss-foot .bf-text b { color: var(--xp-light); }
+
+        /* ===== Ofensiva / semana ===== */
+        .streak-card { background: var(--bg-sidebar); color: #fff; border-radius: var(--r-xl); padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 6px 0 #0A0B1A; }
+        .sc-top { display: flex; align-items: center; gap: 12px; }
+        .sc-flame { width: 58px; height: 58px; border-radius: 18px; background: var(--fire); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #9A3412; }
+        .sc-num { color: #fff; font: 800 1.7rem/1 var(--font-display); }
+        .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; text-align: center; }
+        .week div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; color: var(--text-sidebar); }
+        .week .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--surface-game-line); display: flex; align-items: center; justify-content: center; }
+        .week .dot.on { background: var(--fire); }
+        .week .dot.shield { background: var(--shield-bg); border: 2px solid var(--shield); color: var(--shield); }
+        .week .dot.today { background: transparent; border: 3px dashed var(--fire-light); }
+        .week .is-today { color: #fff; }
+        .challenge-bar { display: flex; gap: 6px; }
+        .challenge-bar span { flex: 1; height: 12px; border-radius: 999px; background: var(--border); }
+        .challenge-bar span.on { background: var(--primary); }
+
+        /* ===== Troféus ===== */
+        .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+        .trophy { border: 0; background: #fff; border-radius: var(--r-md); padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: 0 3px 0 var(--border); cursor: pointer; text-align: center; }
+        .trophy[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--primary), 0 3px 0 var(--border); }
+        .medal-ring { width: 48px; height: 48px; border-radius: 50%; border: 3px solid #CBD1E8; background: #F1F2FA; color: #55577A; display: flex; align-items: center; justify-content: center; }
+        .tier-1 .medal-ring { background: #FFEDD5; border-color: #EA580C; color: #7C2D12; }
+        .tier-2 .medal-ring { background: #EEEFF7; border-color: #A2A5C4; color: #3F3F5C; }
+        .tier-3 .medal-ring { background: #FEF3C7; border-color: #F59E0B; color: #92400E; }
+        .trophy .tr-name { font: 700 0.8rem/1.2 var(--font-display); color: var(--text-heading); }
+        .trophy .tr-tier { font: 800 0.64rem var(--font-body); letter-spacing: 0.4px; color: var(--text-muted); }
+        .trophy-detail { background: var(--bg-sidebar); color: #fff; border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 5px 0 #0A0B1A; }
+        .trophy-detail h3 { color: #fff; font-size: 1.05rem; }
+        .td-bar { height: 10px; border-radius: 999px; background: var(--surface-game-line); overflow: hidden; }
+        .td-bar > div { height: 100%; border-radius: 999px; background: var(--xp); }
+        .count-chip { border-radius: 999px; padding: 4px 10px; font: 800 0.75rem var(--font-display); }
+
+        /* ===== Perfil ===== */
+        .title-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .title-chip { border: 0; border-radius: 999px; padding: 7px 12px; font: 800 0.76rem var(--font-display); background: var(--surface-game); color: #fff; box-shadow: 0 3px 0 #0A0B1A; cursor: pointer; }
+        .title-chip[aria-pressed="true"] { background: var(--xp-light); color: #14152B; box-shadow: 0 3px 0 var(--xp-shadow); }
+        .attr { display: grid; grid-template-columns: 96px minmax(0, 1fr) 46px; align-items: center; gap: 10px; }
+        .attr .a-name { font: 700 0.85rem var(--font-display); color: var(--text-heading); }
+        .attr .a-bar { height: 12px; border-radius: 999px; background: #F1F2FA; overflow: hidden; }
+        .attr .a-bar span { display: block; height: 100%; border-radius: 999px; background: var(--w); }
+        .attr .a-lv { font: 800 0.78rem var(--font-display); color: var(--w-dark); text-align: right; }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .stat { background: #fff; border-radius: var(--r-md); box-shadow: 0 3px 0 var(--border); padding: 12px 6px; text-align: center; }
+        .stat b { display: block; font: 800 1.45rem var(--font-display); }
+        .stat span { font-size: 0.74rem; font-weight: 700; color: var(--text-muted); }
+        .xp-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .xp-table td { padding: 7px 0; border-bottom: 1px solid #F1F2FA; }
+        .xp-table td:last-child { text-align: right; font-weight: 800; color: var(--xp-text); white-space: nowrap; padding-left: 10px; }
+        details.howto summary { cursor: pointer; font: 700 1rem var(--font-display); color: var(--text-heading); padding: 14px 16px; list-style-position: inside; }
+        details.howto .howto-body { padding: 0 16px 14px; }
+
+        /* ===== Janela de vitória e outras sobreposições ===== */
+        .overlay { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .overlay[hidden] { display: none; }
+        .ov-backdrop { position: absolute; inset: 0; background: rgba(10, 11, 26, 0.75); }
+        .ov-panel { position: relative; width: 100%; max-width: 410px; max-height: calc(100vh - 32px); overflow-y: auto; background: var(--bg-sidebar); color: #fff; border-radius: 26px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; box-shadow: 0 10px 0 #0A0B1A; animation: pop 0.3s cubic-bezier(.2,1.4,.5,1); }
+        .ov-panel.light { background: #fff; color: var(--text-main); align-items: stretch; box-shadow: 0 10px 0 rgba(0,0,0,0.25); }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: none; opacity: 1; } }
+        .ov-close { position: absolute; top: 14px; right: 14px; background: var(--surface-game); }
+        .ov-panel.light .ov-close { background: #F1F2FA; color: var(--text-main); }
+        .z-title { color: var(--xp-light); font: 800 2.5rem/1 var(--font-display); letter-spacing: -0.02em; text-align: center; margin-top: 8px; }
+        .z-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .xp-pill.big { background: var(--xp); color: #14152B; font-size: 0.95rem; padding: 6px 14px; }
+        .z-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--fire-bg); color: var(--fire-light); border-radius: 999px; padding: 6px 12px; font: 800 0.82rem var(--font-display); }
+        .rcard { width: 256px; background: #fff; border: 5px solid #CBD1E8; border-radius: 24px; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 0 #0A0B1A; transform: rotate(-2deg); color: var(--text-heading); }
+        .rc-top { display: flex; justify-content: space-between; align-items: center; font: 800 0.7rem var(--font-body); letter-spacing: 0.7px; }
+        .rc-top .rc-world { color: #55577A; letter-spacing: 0; font-weight: 700; }
+        .rc-art { height: 100px; border-radius: 14px; background: var(--w-soft); color: var(--w-dark); display: flex; align-items: center; justify-content: center; }
+        .rc-title { font: 800 1.15rem/1.15 var(--font-display); }
+        .rc-meta { font-size: 0.75rem; font-weight: 600; color: #55577A; }
+        .rc-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; color: #55577A; }
+        .rc-foot b { font: 800 1.5rem var(--font-display); }
+        .nota-pick { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .nota-pick .np-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        .nota-pick h3 { color: #fff; font-size: 1rem; }
+        .nota-pick small { color: var(--text-sidebar); font-weight: 600; }
+        .np-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+        .np-grid button { height: 44px; border: 0; border-radius: var(--r-sm); background: var(--surface-game); color: #fff; font: 800 1rem var(--font-display); box-shadow: 0 4px 0 #0A0B1A; cursor: pointer; }
+        .np-grid button[aria-pressed="true"] { background: var(--xp-light); color: #14152B; box-shadow: 0 4px 0 var(--xp-shadow); }
+        .np-grid button:active { transform: translateY(4px); box-shadow: none; }
+        .z-actions { display: flex; gap: 10px; width: 100%; }
+        .z-actions .btn-3d { flex: 1; min-height: 50px; font-size: 1rem; }
+        .ov-panel textarea, .ov-panel input[type=text] { width: 100%; border: 2px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; font: 500 0.95rem var(--font-body); }
+
+        /* ===== Avisos (+XP, missão, troféu) ===== */
+        .toast-area { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 2100; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; width: max-content; max-width: calc(100vw - 24px); }
+        body.ov-open .toast-area { top: 16px; bottom: auto; }
+        .toast-g { background: var(--bg-sidebar); color: #fff; border-radius: 999px; padding: 10px 16px; font: 700 0.9rem var(--font-body); box-shadow: 0 4px 0 #0A0B1A; display: inline-flex; align-items: center; gap: 8px; animation: toastIn 0.3s ease; }
+        .toast-g.xp { background: var(--xp); color: #14152B; font: 800 1rem var(--font-display); box-shadow: 0 4px 0 var(--xp-shadow); }
+        .toast-g.level { background: var(--primary); font: 800 1.05rem var(--font-display); box-shadow: 0 4px 0 var(--primary-shadow); padding: 14px 22px; }
+        .toast-g.trophy { background: #FEF3C7; color: #92400E; box-shadow: 0 4px 0 #F59E0B; }
+        .toast-g.out { opacity: 0; transform: translateY(-16px); transition: opacity 0.5s, transform 0.5s; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .btn-save-float { position: fixed; top: 16px; right: 16px; z-index: 1500; display: none; border-radius: 999px; padding: 7px 13px; font: 700 0.78rem var(--font-body); background: #15803D; color: #fff; box-shadow: 0 3px 0 #14532D; transition: opacity 0.3s; pointer-events: none; }
+
+        .bottom-nav { display: none; }
+
+        /* ================= CELULAR ================= */
         @media (max-width: 768px) {
-            body { overflow: auto; }
+            .sidebar { display: none; }
+            .main-content { padding: 14px 12px calc(96px + env(safe-area-inset-bottom)); }
+            .view { gap: 14px; }
+            .bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; background: #fff; border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+            .bn-btn { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font: 700 0.68rem var(--font-body); padding: 4px 0; cursor: pointer; min-height: 50px; justify-content: center; }
+            .bn-btn[aria-current="page"] { color: var(--primary-dark); font-weight: 800; }
+            .bn-btn[aria-current="page"] .ic { stroke-width: 2.5; }
+            .toast-area { bottom: calc(86px + env(safe-area-inset-bottom)); }
+            .player-card, .streak-card { padding: 16px; }
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .world-head h1 { font-size: 1.25rem; }
+            .controls .btn-3d { flex: 1 1 auto; }
 
-            .btn-menu-toggle { display: flex; }
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                transform: translateX(-100%);
-                width: 82vw;
-                max-width: 300px;
-                transition: transform 0.25s ease;
-            }
-            .sidebar.mobile-open { transform: translateX(0); }
-            .sidebar.mobile-open ~ .sidebar-overlay { display: block; }
-            .nav-link { padding: 15px 14px; font-size: 1rem; }
-
-            .main-content { padding: 76px 12px 100px 12px; width: 100%; }
-
-            .tab-content { border-radius: var(--radius-md); padding: 16px; }
-
-            .content-header { flex-wrap: wrap; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; }
-            .content-header h2 { font-size: 1.1rem; }
-            .content-header .header-icon-badge { width: 38px; height: 38px; font-size: 1.1rem; }
-            .content-header .btn { font-size: 0.8rem; padding: 8px 12px; white-space: nowrap; }
-            .header-controls { width: 100%; }
-            /* min-width força o botão "Novo Item" a quebrar pra própria linha em vez de espremer e estourar o texto em 2 linhas */
-            .header-controls .btn, .header-controls select { flex: 1 1 130px; min-width: 130px; font-size: 0.8rem; padding: 8px 12px; }
-            .header-controls select.filter-select { padding-right: 26px; }
-
-            .table-responsive { max-height: none; overflow-x: hidden; border: none; }
-
-            /* Cada linha vira um bloco compacto: sem rolagem horizontal, campos em 2 colunas */
-            table { min-width: 0; }
-            table thead { display: none; }
-            table, table tbody { display: block; width: 100%; }
-            table tr {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0 8px;
-                background: #fff;
-                border: 1px solid #ECEDF6;
-                border-radius: var(--radius-sm);
-                padding: 6px 8px 2px;
-                margin-bottom: 6px;
-                box-shadow: var(--shadow-soft);
-            }
-            /* A cor de preenchimento já é global; aqui só ajustamos a borda do "envelope"
-               do card (o desktop usa só um filete à esquerda, o mobile usa borda inteira) */
-            table tr[data-status="status-concluido"] { border-color: #86EFAC; }
-            table tr[data-status="status-aguardando"] { border-color: #93C5FD; }
-            table tr[data-status="status-na"] { border-color: #E4E5F1; }
-            table td {
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                padding: 2px 0;
-                border-bottom: none;
-                font-size: 0.72rem;
-                min-height: auto;
-                min-width: 0;
-                overflow: hidden;
-                line-height: 1.25;
-                /* O Bootstrap pinta um fundo próprio em cada célula (via --bs-table-bg); isso cobria a cor
-                   do status que fica no <tr>. Forçando transparente pra cor do card aparecer inteira. */
-                background-color: transparent !important;
-            }
-            /* Os controles dentro da célula precisam encolher junto com a coluna, em vez de vazar */
-            table td > * { min-width: 0; max-width: 100%; }
-            /* Borda sutil no badge pra ele não se misturar com o card, que agora tem a mesma cor de fundo */
-            table td .status-select { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; font-size: 0.62rem; }
-            table td .progress-wrapper { flex: 1; min-width: 0; gap: 6px; }
-            table td .progress-slider { max-width: none; }
-            table td .progress-slider::-webkit-slider-thumb { width: 14px; height: 14px; }
-            table td .progress-slider::-moz-range-thumb { width: 14px; height: 14px; }
-            table td .progress-value { font-size: 0.68rem; min-width: 28px; }
-            table td .editable-cell { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; }
-            table td[data-label="Item"] .editable-cell { white-space: normal; }
-            table td::before {
-                content: attr(data-label);
-                font-weight: 700;
-                color: #A2A5C4;
-                font-size: 0.55rem;
-                text-transform: uppercase;
-                letter-spacing: 0.2px;
-                flex-shrink: 0;
-            }
-            /* Nome do item: em destaque, ocupando a linha toda, no topo do bloco */
-            table td[data-label="Item"] {
-                grid-column: 1 / -1;
-                order: -1;
-                padding-bottom: 4px;
-                border-bottom: 1px solid #F4F5FA;
-                margin-bottom: 2px;
-            }
-            table td[data-label="Item"] .cell-item-name { font-size: 0.85rem; }
-            table td[data-label="Item"]::before { content: none; }
-            /* Ações: botões pequenos, alinhados à direita, acima do nome do item */
-            table td.td-actions {
-                grid-column: 1 / -1;
-                order: -2;
-                justify-content: flex-end;
-                padding: 0 0 2px;
-            }
-            table td.td-actions::before { content: none; }
-            .btn-icon { padding: 5px 8px; font-size: 0.8rem; }
-
-            /* Bloco do item mais objetivo: some com Tipo e Streaming, mantém Progresso, Status e Nota */
-            table td[data-label="Tipo"],
-            table td[data-label="Streaming"] { display: none; }
-
-            .editable-cell { padding: 2px 3px; }
-            .status-select { font-size: 0.62rem; padding: 4px 8px; }
-            .progress-wrapper { flex-wrap: nowrap; }
-            .nota-medal { min-width: 0; padding: 3px 7px; font-size: 0.7rem; }
-
-            .btn-save-float {
-                left: 14px;
-                right: 14px;
-                bottom: 14px;
-                text-align: center;
-                font-size: 0.9rem;
-            }
-
+            .list-box { background: transparent; box-shadow: none; border-radius: 0; }
+            .table-responsive { overflow-x: hidden; }
+            table.items, table.items tbody { display: block; width: 100%; }
+            table.items thead { display: none; }
+            .chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px 6px; -webkit-overflow-scrolling: touch; }
+            .chip { flex-shrink: 0; }
+            .btn-save-float { display: none !important; }
+            table.items tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; background: #fff; border: 1px solid var(--border-subtle); border-radius: var(--r-md); padding: 8px 10px 6px; margin-bottom: 8px; box-shadow: 0 3px 0 var(--border); }
+            table.items tr[data-status="status-concluido"] { border-color: #86EFAC; }
+            table.items tr[data-status="status-aguardando"] { border-color: #93C5FD; }
+            table.items td { display: flex; align-items: center; gap: 6px; padding: 3px 0; border-bottom: none; font-size: 0.78rem; min-width: 0; overflow: hidden; line-height: 1.25; }
+            table.items td > * { min-width: 0; max-width: 100%; }
+            table.items td::before { content: attr(data-label); font-weight: 800; color: #6B6E8F; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+            table.items td.td-item { grid-column: 1; grid-row: 1; padding: 2px 0; }
+            table.items td.td-item::before, table.items td.td-actions::before, table.items td.td-phase::before { content: none; }
+            table.items td.td-item .cell-item-name { font-size: 0.95rem; white-space: normal; }
+            table.items td.td-actions { grid-column: 2; grid-row: 1; justify-content: flex-end; padding: 0; }
+            table.items td.td-phase { grid-column: 1 / -1; }
+            table.items td.td-hide-mobile { display: none; }
+            .phase-wrap { min-width: 0; width: 100%; }
+            .status-select { padding: 6px 10px; font-size: 0.66rem; flex: 1; }
+            .btn-icon { width: 32px; height: 32px; border-radius: 10px; }
+            .action-btns { gap: 5px; }
+            .editable-cell { padding: 3px 4px; }
+            .ov-panel { padding: 18px 16px; }
+        }
+        @media (max-width: 380px) {
+            .worlds-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
     </style>
 </head>
 <body>
 
-    <button class="btn-menu-toggle" id="btnMenuToggle" onclick="toggleSidebar()">
-        <i class="bi bi-list"></i>
-    </button>
-
-    <div class="btn btn-success btn-save-float" id="btnSave" style="pointer-events: none;">
-        <i class="bi bi-cloud-check-fill"></i> Salvo automaticamente
+    <div class="app">
+        <aside class="sidebar" id="sidebar" aria-label="Menu"></aside>
+        <main class="main-content" id="mainContent"></main>
     </div>
+    <nav class="bottom-nav" id="bottomNav" aria-label="Navegação"></nav>
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h4><span class="logo-badge">🚀</span> <span style="display:flex; flex-direction:column; line-height:1.3;">Dashboard 2026<span class="logo-sub">Seu painel pessoal</span></span></h4>
-        </div>
-        <div class="nav-links" id="navLinks">
-            </div>
-        <div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
-            <button class="btn btn-outline-light w-100 btn-sm mb-2" onclick="exportData()" style="background: rgba(255,255,255,0.06); color: #fff;">
-                <i class="bi bi-download"></i> Fazer Backup
-            </button>
-            <div class="text-center" id="syncStatusText" style="font-size: 0.7rem; color: var(--text-sidebar);">
-                Salvo só neste aparelho.
-            </div>
-        </div>
-    </div>
+    <div class="btn-save-float" id="btnSave" aria-hidden="true">Salvo</div>
+    <div class="toast-area" id="toastArea" aria-live="polite"></div>
+    <div class="overlay" id="overlay" hidden></div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-    <div class="main-content" id="mainContent"></div>
-
-    <div class="modal fade" id="addModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="modalTitle">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 22px; border: 0;">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Novo Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="modalTitle">Novo item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
-                <div class="modal-body" id="modalBody">
-                    </div>
+                <div class="modal-body" id="modalBody"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="saveNewItem()">Adicionar</button>
+                    <button type="button" class="btn-3d btn-light3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn-3d btn-primary3" onclick="saveNewItem()">Adicionar</button>
                 </div>
             </div>
         </div>
@@ -422,15 +459,84 @@
 
         let appData = {};
         let currentTabId = "";
+        let currentView = "base";
         let currentModalTab = "";
         let sortConfig = {};
         let filterConfig = {};
+        let selectedTrophy = null;
+
+        // ==========================================
+        // ÍCONES (traço de 2px numa grade de 24px; substituem os emojis)
+        // ==========================================
+        const ICONS = {
+            home: '<path d="M4 11l8-7 8 7v9H4z"/>',
+            compass: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-2 5-5 1 2-5z"/>',
+            flame: '<path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/>',
+            trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8"/>',
+            user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
+            target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+            tv: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 2l4 4 4-4"/>',
+            spark: '<path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>',
+            film: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4"/>',
+            pad: '<rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v4M5 13h4M15 12h.01M18 14h.01"/>',
+            book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/>',
+            shield: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/>',
+            check: '<path d="M5 12l5 5 9-10"/>',
+            plus: '<path d="M12 5v14M5 12h14"/>',
+            back: '<path d="M15 5l-7 7 7 7"/>',
+            x: '<path d="M6 6l12 12M18 6L6 18"/>',
+            sword: '<path d="M14 4h6v6L9 21l-6-6zM6 14l4 4M3 21l3-3"/>',
+            chest: '<rect x="3" y="9" width="18" height="11" rx="2"/><path d="M3 13h18M5 9a7 5 0 0 1 14 0M11 13v3h2v-3"/>',
+            star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+            crown: '<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5zM5 19h14"/>',
+            grid: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+            bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+            play: '<path d="M6 4l14 8-14 8z"/>',
+            undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
+            edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+            cloud: '<path d="M7 18a5 5 0 0 1-.5-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-1 9z"/>',
+            rocket: '<path d="M5 15c-1 1-2 4-2 6 2 0 5-1 6-2M9 15l-3-3c2-6 7-9 14-9 0 7-3 12-9 14z"/><circle cx="14.5" cy="9.5" r="1.5"/>'
+        };
+        function icon(name, size = 22) {
+            return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+        }
+
+        // ==========================================
+        // MUNDOS (cada aba vira um mundo com cor, ícone e XP próprios)
+        // ==========================================
+        const WORLDS = {
+            metas:  { name: 'Metas',  icon: 'target', c: '#16A34A', dark: '#15803D', shadow: '#14532D', soft: '#DCFCE7', attr: 'Disciplina', xp: 80 },
+            series: { name: 'Séries', icon: 'tv',     c: '#2563EB', dark: '#1D4ED8', shadow: '#1E3A8A', soft: '#DBEAFE', attr: 'Maratona',   xp: 40 },
+            animes: { name: 'Animes', icon: 'spark',  c: '#DB2777', dark: '#BE185D', shadow: '#831843', soft: '#FCE7F3', attr: 'Otaku',      xp: 40 },
+            filmes: { name: 'Filmes', icon: 'film',   c: '#EA580C', dark: '#C2410C', shadow: '#7C2D12', soft: '#FFEDD5', attr: 'Cinéfilo',   xp: 25 },
+            jogos:  { name: 'Jogos',  icon: 'pad',    c: '#0D9488', dark: '#0F766E', shadow: '#134E4A', soft: '#CCFBF1', attr: 'Gameplay',   xp: 60 },
+            livros: { name: 'Livros', icon: 'book',   c: '#B45309', dark: '#92400E', shadow: '#78350F', soft: '#FDE9D0', attr: 'Sabedoria',  xp: 60 }
+        };
+        function splitTitle(title) {
+            const parts = String(title || '').split(' ');
+            return { icon: parts[0], label: parts.slice(1).join(' ') || parts[0] };
+        }
+        function world(key) {
+            if (WORLDS[key]) return WORLDS[key];
+            const t = splitTitle(appData[key] ? appData[key].title : key);
+            return { name: t.label, emoji: t.icon, c: '#6C5CE7', dark: '#5642D6', shadow: '#4632C4', soft: '#EEEBFD', attr: t.label, xp: 40 };
+        }
+        function worldVars(key) {
+            const w = world(key);
+            return `--w:${w.c};--w-dark:${w.dark};--w-shadow:${w.shadow};--w-soft:${w.soft};`;
+        }
+        function worldIcon(key, size = 22) {
+            const w = world(key);
+            return w.icon ? icon(w.icon, size) : `<span aria-hidden="true" style="font-size:${Math.round(size * 0.8)}px;line-height:1">${escapeHtml(w.emoji || '•')}</span>`;
+        }
 
         // ==========================================
         // SINCRONIZAÇÃO NA NUVEM (Firebase Realtime Database)
         // Deixa os dados iguais em qualquer aparelho, em vez de presos no
         // localStorage de cada navegador. Login anônimo só pra passar pela
         // regra de segurança do banco; não pede senha nem tela de login.
+        // O progresso do jogo (ofensiva, missões, escudos) fica num nó separado,
+        // "dashboard2026_jogo", pra não misturar com as abas.
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyA6VoDm816XTTNiMW_hsuEI3QHezdg8q7s",
@@ -443,12 +549,13 @@
         };
         let cloudRef = null;
         let cloudReady = false;
+        let gameRef = null;
+        let gameCloudReady = false;
+        let syncStatus = 'Salvo só neste aparelho.';
 
-        // Mostra o status real da sincronização no rodapé do menu (não só no botão que
-        // pisca depois de uma edição), pra dar pra conferir mesmo sem mexer em nada.
         function setSyncStatusText(text) {
-            const el = document.getElementById('syncStatusText');
-            if (el) el.textContent = text;
+            syncStatus = text;
+            document.querySelectorAll('.sync-status-text').forEach(el => { el.textContent = text; });
         }
 
         function initCloudSync() {
@@ -462,6 +569,7 @@
             try {
                 firebase.initializeApp(firebaseConfig);
                 cloudRef = firebase.database().ref("dashboard2026");
+                gameRef = firebase.database().ref("dashboard2026_jogo");
 
                 firebase.auth().onAuthStateChanged((user) => {
                     if (!user) return;
@@ -472,11 +580,10 @@
                         const cloudData = snapshot.val();
                         if (cloudData) {
                             appData = cloudData;
+                            normalizeData();
                             localStorage.setItem('dashboard2026_data_v6', JSON.stringify(appData));
-                            renderMenu();
-                            renderAllTabs();
-                            const tabToShow = (currentTabId && appData[currentTabId]) ? currentTabId : orderedTabKeys()[0];
-                            showTab(tabToShow);
+                            checkTrophies(true);
+                            renderAll();
                         } else {
                             // Nuvem ainda vazia (primeiro uso): sobe os dados locais atuais como ponto de partida
                             cloudRef.set(appData);
@@ -484,6 +591,21 @@
                     }, (err) => {
                         console.warn('Falha ao ler dados da nuvem.', err);
                         setSyncStatusText('Falha ao conectar à nuvem (veja o console).');
+                    });
+
+                    gameRef.on("value", (snapshot) => {
+                        const cloudGame = snapshot.val();
+                        gameCloudReady = true;
+                        if (cloudGame) {
+                            gameState = Object.assign(defaultGame(), cloudGame);
+                            localStorage.setItem(GAME_KEY, JSON.stringify(gameState));
+                            renderAll();
+                        } else {
+                            gameRef.set(gameState).catch(() => {});
+                        }
+                    }, (err) => {
+                        gameCloudReady = false;
+                        console.warn('Progresso do jogo sem acesso à nuvem; fica salvo neste aparelho.', err);
                     });
                 });
 
@@ -497,30 +619,315 @@
             }
         }
 
-        // Ordem fixa das abas no menu, independente da ordem em que o localStorage/nuvem
+        // Ordem fixa das abas, independente da ordem em que o localStorage/nuvem
         // devolve as chaves (o Realtime Database, por exemplo, reordena objetos por chave).
         const TAB_ORDER = ["metas", "series", "animes", "filmes", "jogos", "livros"];
         function orderedTabKeys() {
-            const known = TAB_ORDER.filter(k => appData[k]);
-            const extra = Object.keys(appData).filter(k => !TAB_ORDER.includes(k));
+            const isTab = k => appData[k] && Array.isArray(appData[k].columns);
+            const known = TAB_ORDER.filter(isTab);
+            const extra = Object.keys(appData).filter(k => !TAB_ORDER.includes(k) && isTab(k));
             return known.concat(extra);
         }
 
-        // Cada área da vida ganha sua própria cor de identidade
-        const TAB_ACCENTS = {
-            metas:  { color: '#16A34A', soft: '#DCFCE7' }, // conquistas -> verde
-            series: { color: '#2563EB', soft: '#DBEAFE' }, // séries -> azul
-            animes: { color: '#DB2777', soft: '#FCE7F3' }, // animes -> magenta
-            filmes: { color: '#EA580C', soft: '#FFEDD5' }, // filmes -> laranja
-            jogos:  { color: '#0D9488', soft: '#CCFBF1' }, // jogos -> teal
-            livros: { color: '#92400E', soft: '#FDE9D0' }  // livros -> âmbar/marrom
-        };
-        function getAccent(key) {
-            return TAB_ACCENTS[key] || { color: '#6C5CE7', soft: '#EEEBFD' };
+        // O Firebase apaga listas vazias; garante que toda aba tenha colunas e linhas
+        function normalizeData() {
+            Object.keys(appData || {}).forEach(k => {
+                const t = appData[k];
+                if (!t || typeof t !== 'object') return;
+                if (t.columns && !Array.isArray(t.columns)) t.columns = Object.values(t.columns);
+                if (Array.isArray(t.columns) && !Array.isArray(t.rows)) t.rows = t.rows ? Object.values(t.rows) : [];
+                (t.rows || []).forEach(r => {
+                    if (r && r.chefao && r.chefao.etapas && !Array.isArray(r.chefao.etapas)) r.chefao.etapas = Object.values(r.chefao.etapas);
+                });
+            });
         }
-        function splitTitle(title) {
-            const parts = title.split(' ');
-            return { icon: parts[0], label: parts.slice(1).join(' ') };
+
+        // ==========================================
+        // REGRAS DO JOGO
+        // XP vem dos próprios dados (fases, zerados, notas) + bônus de missões.
+        // Nada tira XP; desfazer um item só devolve o XP daquele item.
+        // ==========================================
+        const playerCost = n => 200 * n + 100;   // XP para passar do nível n do jogador
+        const worldCost = n => 80 * n + 40;      // XP para passar do nível n de um mundo
+        const XP_FASE = 15, XP_NOTA = 10, XP_GOLPE = 50, XP_CHEFAO = 300, XP_BAU = 30, XP_SEMANA = 100;
+
+        function cols(key) {
+            const c = (appData[key] && appData[key].columns) || [];
+            return {
+                status: c.find(x => x.toUpperCase().includes('STATUS')),
+                prog: c.find(x => x.toUpperCase().includes('PROGRESSO')),
+                nota: c.find(x => x.toUpperCase().trim() === 'NOTA'),
+                item: c.find(x => x.toUpperCase().trim() === 'ITEM') || c[0]
+            };
+        }
+        function normStatus(v) {
+            let s = (v === undefined || v === null) ? '' : String(v).trim().toUpperCase();
+            if (s === 'CONCLUÍDO' || s === 'REALIZADO') s = 'CONCLUIDO';
+            if (s === 'STAND BY') s = 'AGUARDANDO';
+            return s;
+        }
+        function findRow(key, id) { return ((appData[key] && appData[key].rows) || []).find(r => r && r.id === id); }
+        function isDone(key, row) { const c = cols(key); return !!c.status && normStatus(row[c.status]) === 'CONCLUIDO'; }
+        function isBoss(row) { return !!(row && row.chefao && Array.isArray(row.chefao.etapas) && row.chefao.etapas.length); }
+        function bossDone(row) { return row.chefao.etapas.filter(e => e && e.feito).length; }
+        function rowPhase(key, row) {
+            if (isDone(key, row)) return 4;
+            const c = cols(key);
+            if (!c.prog) return 0;
+            const p = parseInt(row[c.prog]) || 0;
+            return Math.max(0, Math.min(4, Math.floor(p / 25)));
+        }
+        function rowNota(key, row) {
+            const c = cols(key);
+            if (!c.nota) return NaN;
+            const v = parseFloat(String(row[c.nota] === undefined ? '' : row[c.nota]).replace(',', '.'));
+            return isNaN(v) ? NaN : v;
+        }
+        function rarity(n) {
+            if (isNaN(n)) return 'comum';
+            if (n >= 10) return 'lendario';
+            if (n >= 9) return 'epico';
+            if (n >= 7) return 'raro';
+            return 'comum';
+        }
+        const RARITY_LABEL = { lendario: 'LENDÁRIO', epico: 'ÉPICO', raro: 'RARO', comum: 'COMUM' };
+        // Mundos sem coluna de nota (ex.: Metas) não têm raridade: o card fica na cor do mundo
+        function cardTier(key, n) { return cols(key).nota ? rarity(n) : 'mundo'; }
+        function tierLabel(key, rr) { return rr === 'mundo' ? (key === 'metas' ? 'META BATIDA' : 'ZERADO') : RARITY_LABEL[rr]; }
+        function rowXP(key, row) {
+            if (!row) return 0;
+            if (isBoss(row)) {
+                const d = bossDone(row), t = row.chefao.etapas.length;
+                return d * XP_GOLPE + (d === t ? XP_CHEFAO : 0);
+            }
+            let xp = rowPhase(key, row) * XP_FASE;
+            if (isDone(key, row)) {
+                xp += world(key).xp;
+                if (!isNaN(rowNota(key, row))) xp += XP_NOTA;
+            }
+            return xp;
+        }
+        function worldXP(key) { return ((appData[key] && appData[key].rows) || []).reduce((s, r) => s + rowXP(key, r), 0); }
+        function totalXP() { return orderedTabKeys().reduce((s, k) => s + worldXP(k), 0) + (gameState.bonusXP || 0); }
+        function levelInfo(xp, cost) {
+            let lv = 1, rest = Math.max(0, xp);
+            while (rest >= cost(lv) && lv < 999) { rest -= cost(lv); lv++; }
+            return { lv, cur: rest, need: cost(lv), pct: Math.round(100 * rest / cost(lv)) };
+        }
+        function snapshot() { const xp = totalXP(); return { xp, lv: levelInfo(xp, playerCost).lv }; }
+        const fmt = n => Number(n || 0).toLocaleString('pt-BR');
+
+        // ===== Estado do jogo (ofensiva, missões, escudos, título) =====
+        const GAME_KEY = 'dashboard2026_jogo_v1';
+        function defaultGame() {
+            return { v: 1, nome: 'Guilherme', titulo: '', bonusXP: 0, escudos: 0, recorde: 0, log: {}, missoes: {}, semanas: {} };
+        }
+        let gameState = defaultGame();
+        function loadGame() {
+            try {
+                const s = JSON.parse(localStorage.getItem(GAME_KEY) || 'null');
+                if (s) gameState = Object.assign(defaultGame(), s);
+            } catch (e) { /* estado corrompido: começa do zero */ }
+        }
+        function saveGame() {
+            pruneGame();
+            localStorage.setItem(GAME_KEY, JSON.stringify(gameState));
+            if (gameCloudReady && gameRef) gameRef.set(gameState).catch(() => {});
+        }
+        function pruneGame() {
+            const keep = addDays(todayStr(), -120);
+            Object.keys(gameState.log || {}).forEach(d => { if (d < keep) delete gameState.log[d]; });
+            const weeks = Object.keys(gameState.semanas || {}).sort();
+            while (weeks.length > 20) delete gameState.semanas[weeks.shift()];
+        }
+
+        // ===== Datas (dia local do aparelho) =====
+        function dstr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+        function todayStr() { return dstr(new Date()); }
+        function addDays(s, n) { const [y, m, d] = s.split('-').map(Number); return dstr(new Date(y, m - 1, d + n)); }
+        function weekStart(s) { const [y, m, d] = s.split('-').map(Number); const wd = (new Date(y, m - 1, d).getDay() + 6) % 7; return addDays(s, -wd); }
+        function fmtDate(s) { if (!s) return ''; const [y, m, d] = String(s).slice(0, 10).split('-'); return `${d}/${m}`; }
+
+        // ===== Registro do dia (alimenta ofensiva, missões e desafio da semana) =====
+        // f = fase avançada, z = item zerado, n = nota dada, q = começou algo da fila
+        function logEvent(type, key) {
+            const t = todayStr();
+            gameState.log = gameState.log || {};
+            const l = gameState.log[t] || (gameState.log[t] = {});
+            l[type] = (l[type] || 0) + 1;
+            if (key) {
+                const k = type + 't';
+                l[k] = l[k] || {};
+                l[k][key] = (l[k][key] || 0) + 1;
+            }
+        }
+        function isActive(s) { const l = (gameState.log || {})[s]; return !!(l && (l.f || l.z || l.n || l.q)); }
+        function covered(s) { const l = (gameState.log || {})[s]; return isActive(s) || !!(l && l.escudo); }
+        function streak() {
+            let d = todayStr();
+            if (!covered(d)) d = addDays(d, -1);
+            let n = 0;
+            while (covered(d) && n < 3650) { n++; d = addDays(d, -1); }
+            return n;
+        }
+        // Escudo: se ontem ficou parado mas anteontem não, um escudo guardado salva a ofensiva
+        function applyShields() {
+            const y = addDays(todayStr(), -1), yy = addDays(y, -1);
+            if (!covered(y) && covered(yy) && (gameState.escudos || 0) > 0) {
+                gameState.log[y] = gameState.log[y] || {};
+                gameState.log[y].escudo = true;
+                gameState.escudos--;
+                saveGame();
+                setTimeout(() => showToast(`${icon('shield', 18)} Um escudo salvou sua ofensiva de ontem`), 600);
+            }
+        }
+        function updateRecord() { gameState.recorde = Math.max(gameState.recorde || 0, streak()); }
+
+        // ===== Missões do dia =====
+        function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+        function seeded(seed) { let x = seed || 1; return () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return (x >>> 0) / 4294967296; }; }
+        function anyRow(pred) { return orderedTabKeys().some(k => (appData[k].rows || []).some(r => r && pred(k, r))); }
+        function missionDefs() {
+            const defs = {
+                fase1: { text: 'Avance uma fase em qualquer mundo', xp: 15, goal: 1, prog: l => l.f || 0, grp: 'a', ok: true },
+                fase3: { text: 'Avance 3 fases hoje', xp: 25, goal: 3, prog: l => l.f || 0, grp: 'b', ok: true },
+                zerar: { text: 'Zere um item', xp: 25, goal: 1, prog: l => l.z || 0, grp: 'b', ok: anyRow((k, r) => !isDone(k, r) && !!cols(k).status) },
+                nota: { text: 'Dê nota a algo que você zerou', xp: 10, goal: 1, prog: l => l.n || 0, grp: 'c', ok: anyRow((k, r) => isDone(k, r) && !!cols(k).nota && isNaN(rowNota(k, r))) },
+                fila: { text: 'Comece algo da sua fila', xp: 10, goal: 1, prog: l => l.q || 0, grp: 'c', ok: anyRow((k, r) => !!cols(k).status && normStatus(r[cols(k).status]) === 'AGUARDANDO') }
+            };
+            orderedTabKeys().forEach(k => {
+                defs['mundo_' + k] = {
+                    text: 'Avance uma fase em ' + world(k).name, xp: 15, goal: 1, grp: 'a',
+                    prog: l => (l.ft && l.ft[k]) || 0,
+                    ok: !!cols(k).prog && (appData[k].rows || []).some(r => r && !isDone(k, r) && !isBoss(r))
+                };
+            });
+            return defs;
+        }
+        function todaysMissions() {
+            const t = todayStr();
+            const defs = missionDefs();
+            let m = gameState.missoes || {};
+            if (m.dia !== t || !Array.isArray(m.ids) || !m.ids.length) {
+                const rnd = seeded(hashStr(t));
+                const ok = Object.keys(defs).filter(id => defs[id].ok);
+                const pick = grp => { const c = ok.filter(id => defs[id].grp === grp); return c.length ? c[Math.floor(rnd() * c.length)] : null; };
+                const ids = [pick('a'), pick('b'), pick('c')].filter(Boolean);
+                const rest = ok.filter(id => !ids.includes(id));
+                while (ids.length < 3 && rest.length) ids.push(rest.splice(Math.floor(rnd() * rest.length), 1)[0]);
+                m = { dia: t, ids, feitas: {}, bau: false };
+                gameState.missoes = m;
+                saveGame();
+            }
+            const l = (gameState.log || {})[t] || {};
+            return m.ids.filter(id => defs[id]).map(id => {
+                const d = defs[id];
+                return { id, text: d.text, xp: d.xp, goal: d.goal, cur: Math.min(d.goal, d.prog(l)), done: !!(m.feitas && m.feitas[id]) };
+            });
+        }
+        function checkMissions() {
+            const list = todaysMissions();
+            const m = gameState.missoes;
+            m.feitas = m.feitas || {};
+            list.forEach(x => {
+                if (!x.done && x.cur >= x.goal) {
+                    m.feitas[x.id] = true;
+                    gameState.bonusXP = (gameState.bonusXP || 0) + x.xp;
+                    showToast(`${icon('check', 18)} Missão cumprida! +${x.xp} XP`);
+                }
+            });
+            if (!m.bau && list.length && list.every(x => m.feitas[x.id])) {
+                m.bau = true;
+                gameState.bonusXP += XP_BAU;
+                showToast(`${icon('chest', 18)} Baú diário aberto! +${XP_BAU} XP`, 'xp');
+            }
+        }
+
+        // ===== Desafio da semana =====
+        const WEEKLY = [
+            { id: 'mundos', text: 'Zere 2 itens de mundos diferentes', goal: 2, prog: days => { const s = new Set(); days.forEach(l => Object.keys(l.zt || {}).forEach(k => s.add(k))); return s.size; } },
+            { id: 'fases', text: 'Avance 10 fases na semana', goal: 10, prog: days => days.reduce((s, l) => s + (l.f || 0), 0) },
+            { id: 'notas', text: 'Dê nota a 3 itens zerados', goal: 3, prog: days => days.reduce((s, l) => s + (l.n || 0), 0) }
+        ];
+        function weekly() {
+            const ws = weekStart(todayStr());
+            const def = WEEKLY[hashStr(ws) % WEEKLY.length];
+            const days = [...Array(7)].map((_, i) => (gameState.log || {})[addDays(ws, i)] || {});
+            return { ws, def, cur: Math.min(def.goal, def.prog(days)), done: !!(gameState.semanas || {})[ws], end: addDays(ws, 6) };
+        }
+        function checkWeekly() {
+            const w = weekly();
+            if (!w.done && w.cur >= w.def.goal) {
+                gameState.semanas = gameState.semanas || {};
+                gameState.semanas[w.ws] = true;
+                gameState.bonusXP = (gameState.bonusXP || 0) + XP_SEMANA;
+                gameState.escudos = Math.min(2, (gameState.escudos || 0) + 1);
+                showToast(`${icon('shield', 18)} Desafio da semana! +${XP_SEMANA} XP e 1 escudo`, 'xp');
+            }
+        }
+
+        // ===== Troféus (bronze, prata, ouro) =====
+        function stats() {
+            const s = { done: {}, total: 0, notas: 0, lend: 0, bosses: 0 };
+            orderedTabKeys().forEach(k => {
+                let c = 0;
+                (appData[k].rows || []).forEach(r => {
+                    if (!r || !isDone(k, r)) return;
+                    c++; s.total++;
+                    const n = rowNota(k, r);
+                    if (!isNaN(n)) { s.notas++; if (n >= 10) s.lend++; }
+                    if (isBoss(r)) s.bosses++;
+                });
+                s.done[k] = c;
+            });
+            return s;
+        }
+        const TROPHIES = [
+            { id: 'fogo', name: 'Fogo aceso', title: 'Imparável', icon: 'flame', tiers: [7, 30, 100], unit: 'dias seguidos', desc: 'Mantenha a ofensiva: 7, 30 e 100 dias seguidos.', val: () => Math.max(gameState.recorde || 0, streak()) },
+            { id: 'series', name: 'Maratonista', icon: 'tv', world: 'series', tiers: [5, 15, 30], unit: 'séries zeradas', desc: 'Zere séries: 5, 15 e 30 temporadas.' },
+            { id: 'animes', name: 'Otaku', icon: 'spark', world: 'animes', tiers: [5, 15, 30], unit: 'animes zerados', desc: 'Zere animes: 5, 15 e 30.' },
+            { id: 'filmes', name: 'Cinéfilo', icon: 'film', world: 'filmes', tiers: [5, 15, 30], unit: 'filmes zerados', desc: 'Zere filmes: 5, 15 e 30.' },
+            { id: 'jogos', name: 'Zerador', icon: 'pad', world: 'jogos', tiers: [3, 10, 25], unit: 'jogos zerados', desc: 'Zere jogos: 3, 10 e 25.' },
+            { id: 'livros', name: 'Rato de biblioteca', icon: 'book', world: 'livros', tiers: [3, 10, 25], unit: 'livros zerados', desc: 'Zere livros: 3, 10 e 25.' },
+            { id: 'metas', name: 'Decidido', icon: 'target', world: 'metas', tiers: [5, 15, 24], unit: 'metas batidas', desc: 'Bata metas do ano: 5, 15 e 24.' },
+            { id: 'critico', name: 'Crítico', icon: 'star', tiers: [10, 50, 100], unit: 'notas dadas', desc: 'Dê nota aos itens que você zerou: 10, 50 e 100.', val: s => s.notas },
+            { id: 'lenda', name: 'Lenda', icon: 'crown', tiers: [1, 5, 10], unit: 'cards lendários', desc: 'Junte cards lendários (nota 10): 1, 5 e 10.', val: s => s.lend },
+            { id: 'chefoes', name: 'Caçador de chefões', icon: 'sword', tiers: [1, 3, 10], unit: 'chefões derrotados', desc: 'Derrote metas-chefão: 1, 3 e 10.', val: s => s.bosses },
+            { id: 'colecao', name: 'Colecionador', icon: 'grid', tiers: [25, 75, 150], unit: 'itens zerados', desc: 'Zere itens em qualquer mundo: 25, 75 e 150.', val: s => s.total },
+            { id: 'nivel', name: 'Veterano', icon: 'bolt', tiers: [5, 10, 20], unit: 'níveis', desc: 'Suba de nível: 5, 10 e 20.', val: () => levelInfo(totalXP(), playerCost).lv }
+        ];
+        const TIER_NAME = ['BLOQUEADO', 'BRONZE', 'PRATA', 'OURO'];
+        function trophyList() { return TROPHIES.filter(t => !t.world || appData[t.world]); }
+        function trophyState(t, s) {
+            const v = t.world ? (s.done[t.world] || 0) : t.val(s);
+            const tier = v >= t.tiers[2] ? 3 : v >= t.tiers[1] ? 2 : v >= t.tiers[0] ? 1 : 0;
+            return { v, tier, next: t.tiers[Math.min(tier, 2)] };
+        }
+        function checkTrophies(silent) {
+            const s = stats();
+            const first = !gameState.trofeus;
+            gameState.trofeus = gameState.trofeus || {};
+            let changed = false;
+            trophyList().forEach(t => {
+                const st = trophyState(t, s);
+                const prev = gameState.trofeus[t.id] || 0;
+                if (st.tier > prev) {
+                    gameState.trofeus[t.id] = st.tier;
+                    changed = true;
+                    if (!silent && !first) showToast(`${icon('trophy', 18)} Troféu ${t.name}: ${TIER_NAME[st.tier].toLowerCase()}!`, 'trophy');
+                }
+            });
+            if (changed) saveGame();
+        }
+        function unlockedTitles() {
+            const s = stats();
+            const titles = ['Novato'];
+            trophyList().forEach(t => { if (trophyState(t, s).tier > 0) titles.push(t.title || t.name); });
+            return titles;
+        }
+        function currentTitle() {
+            const titles = unlockedTitles();
+            return titles.includes(gameState.titulo) ? gameState.titulo : titles[titles.length > 1 ? 1 : 0];
         }
 
         // ==========================================
@@ -530,226 +937,865 @@
             const saved = localStorage.getItem('dashboard2026_data_v6');
             if (saved) {
                 appData = JSON.parse(saved);
-                for(let k in initialData) {
-                    if(!appData[k]) appData[k] = initialData[k];
+                for (let k in initialData) {
+                    if (!appData[k]) appData[k] = initialData[k];
                 }
             } else {
                 appData = JSON.parse(JSON.stringify(initialData));
             }
-            
-            renderMenu();
-            renderAllTabs();
-            showTab(orderedTabKeys()[0]);
-
+            normalizeData();
+            loadGame();
+            applyShields();
+            checkTrophies(true);
+            todaysMissions();
+            renderAll();
             initCloudSync();
         }
 
         // ==========================================
-        // RENDERIZAÇÃO
+        // NAVEGAÇÃO
         // ==========================================
-        function renderMenu() {
-            const navLinks = document.getElementById('navLinks');
-            navLinks.innerHTML = "";
-            orderedTabKeys().forEach((key) => {
-                const tab = appData[key];
-                const accent = getAccent(key);
-                const { icon, label } = splitTitle(tab.title);
-                navLinks.innerHTML += `<a class="nav-link" id="nav-${key}" style="--tab-accent-color:${accent.color}; --tab-accent-soft:${accent.soft};" onclick="showTab('${key}')"><span class="nav-icon">${icon}</span><span>${escapeHtml(label)}</span></a>`;
+        function go(view, key) {
+            currentView = view;
+            if (key) currentTabId = key;
+            renderAll();
+            window.scrollTo(0, 0);
+        }
+        function renderAll() {
+            normalizeData();
+            if (currentView === 'mundo' && !(currentTabId && appData[currentTabId])) currentView = 'mundos';
+            renderSidebar();
+            renderBottomNav();
+            const views = { base: renderBase, mundos: renderMundos, mundo: () => renderWorld(currentTabId), missoes: renderMissoes, trofeus: renderTrofeus, perfil: renderPerfil };
+            document.getElementById('mainContent').innerHTML = (views[currentView] || renderBase)();
+        }
+
+        function renderSidebar() {
+            const L = levelInfo(totalXP(), playerCost);
+            const st = streak();
+            const navItem = (view, ic, label) => `<button class="nav-btn${currentView === view ? ' active' : ''}" onclick="go('${view}')"${currentView === view ? ' aria-current="page"' : ''}><span class="nb-icon">${icon(ic, 18)}</span>${label}</button>`;
+            let worlds = '';
+            orderedTabKeys().forEach(k => {
+                const on = currentView === 'mundo' && currentTabId === k;
+                const wl = levelInfo(worldXP(k), worldCost).lv;
+                worlds += `<button class="nav-btn${on ? ' active' : ''}" style="${worldVars(k)}" onclick="go('mundo','${k}')"${on ? ' aria-current="page"' : ''}><span class="nb-icon">${worldIcon(k, 18)}</span>${escapeHtml(world(k).name)}<span class="nb-lv">Nv ${wl}</span></button>`;
             });
+            document.getElementById('sidebar').innerHTML = `
+                <div class="brand"><span class="logo">${icon('rocket', 20)}</span><span>Dashboard 2026<small>Seu painel pessoal</small></span></div>
+                <button class="side-hud" onclick="go('perfil')" aria-label="Abrir seu perfil">
+                    <span class="sh-top"><span class="sh-lv">${L.lv}</span><span><span class="sh-name">${escapeHtml(gameState.nome || 'Jogador')}</span><br><span class="sh-sub">${escapeHtml(currentTitle())} · ${icon('flame', 12)} ${st} ${st === 1 ? 'dia' : 'dias'}</span></span></span>
+                    <span class="xp-bar" style="height:10px"><div style="width:${L.pct}%"></div></span>
+                    <span class="sh-sub">${fmt(L.cur)} / ${fmt(L.need)} XP para o nível ${L.lv + 1}</span>
+                </button>
+                <nav class="side-nav">
+                    ${navItem('base', 'home', 'Base')}
+                    ${navItem('missoes', 'flame', 'Missões')}
+                    ${navItem('trofeus', 'trophy', 'Troféus')}
+                    ${navItem('perfil', 'user', 'Perfil')}
+                    <div class="side-label">Mundos</div>
+                    ${worlds}
+                </nav>
+                <div class="side-foot">
+                    <button class="btn-ghost-dark" onclick="exportData()"><i class="bi bi-download"></i> Fazer backup</button>
+                    <div class="sync-status-text">${escapeHtml(syncStatus)}</div>
+                </div>`;
         }
-
-        function showTab(tabId) {
-            currentTabId = tabId;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            document.getElementById(`nav-${tabId}`).classList.add('active');
-            closeSidebar();
+        function renderBottomNav() {
+            const item = (view, ic, label) => {
+                const on = currentView === view || (view === 'mundos' && currentView === 'mundo');
+                return `<button class="bn-btn" onclick="go('${view}')"${on ? ' aria-current="page"' : ''}>${icon(ic, 22)}${label}</button>`;
+            };
+            document.getElementById('bottomNav').innerHTML = item('base', 'home', 'Base') + item('mundos', 'compass', 'Mundos') + item('missoes', 'flame', 'Missões') + item('trofeus', 'trophy', 'Troféus') + item('perfil', 'user', 'Perfil');
         }
 
         // ==========================================
-        // MENU MOBILE (abrir/fechar)
+        // TELAS
         // ==========================================
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('mobile-open');
-        }
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('mobile-open');
-        }
-
-        function renderAllTabs() {
-            const container = document.getElementById('mainContent');
-            container.innerHTML = "";
-
-            orderedTabKeys().forEach((key) => {
-                const tabData = appData[key];
-                const statusCol = tabData.columns.find(c => c.toUpperCase().includes("STATUS"));
-                const currentFilter = filterConfig[key] || "ALL";
-                const accent = getAccent(key);
-                const { icon, label } = splitTitle(tabData.title);
-
-                // Ordem padrão por status (Aberto, Aguardando, Selecione, Concluído), só enquanto
-                // o usuário não tiver escolhido outra ordenação manualmente nesta sessão
-                if (statusCol && !sortConfig[key]) {
-                    tabData.rows.sort((a, b) => statusSortPriority(a[statusCol]) - statusSortPriority(b[statusCol]));
-                }
-
-                let html = `
-                    <div id="tab-${key}" class="tab-content" style="--tab-accent-color:${accent.color}; --tab-accent-soft:${accent.soft};">
-                        <div class="content-header">
-                            <div class="content-header-title">
-                                <div class="header-icon-badge">${icon}</div>
-                                <div>
-                                    <h2>${escapeHtml(label)}</h2>
-                                    <p class="item-count">${tabData.rows.length} ${tabData.rows.length === 1 ? 'item' : 'itens'}</p>
-                                </div>
-                            </div>
-                            <div class="header-controls">
-                                ${statusCol ? `
-                                <select class="form-select form-select-sm filter-select" onchange="filterByStatus('${key}', this.value)">
-                                    <option value="ALL" ${currentFilter === 'ALL' ? 'selected' : ''}>Todos os status</option>
-                                    <option value="CONCLUIDO" ${currentFilter === 'CONCLUIDO' ? 'selected' : ''}>Concluído</option>
-                                    <option value="ABERTO" ${currentFilter === 'ABERTO' ? 'selected' : ''}>Aberto</option>
-                                    <option value="AGUARDANDO" ${currentFilter === 'AGUARDANDO' ? 'selected' : ''}>Aguardando</option>
-                                    <option value="VAZIO" ${currentFilter === 'VAZIO' ? 'selected' : ''}>Não iniciado</option>
-                                </select>
-                                <button class="btn btn-outline-secondary btn-sm" onclick="sortTable('${key}', '${statusCol}')" title="Ordenar por status">
-                                    <i class="bi bi-sort-down"></i> Status
-                                </button>` : ''}
-                                <button class="btn btn-primary" onclick="openAddModal('${key}')">
-                                    <i class="bi bi-plus-lg"></i> Novo Item
-                                </button>
-                            </div>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 130px; cursor:default;">Ações</th>
-                `;
-                
-                // Cabeçalhos com lógica de Ordenação
-                tabData.columns.forEach(col => {
-                    let sortIcon = "";
-                    if(sortConfig[key] && sortConfig[key].col === col) {
-                        sortIcon = sortConfig[key].dir === 'asc' ? '<i class="bi bi-caret-up-fill sort-icon"></i>' : '<i class="bi bi-caret-down-fill sort-icon"></i>';
-                    }
-                    html += `<th onclick="sortTable('${key}', '${col}')" title="Clique para ordenar">${col} ${sortIcon}</th>`;
-                });
-                
-                html += `           </tr>
-                                </thead>
-                                <tbody>
-                `;
-
-                // Linhas (aplicando filtro de status, se houver)
-                let rowsToRender = tabData.rows;
-                if (statusCol && currentFilter !== "ALL") {
-                    rowsToRender = tabData.rows.filter(row => {
-                        let v = (row[statusCol] || "").toString().toUpperCase().trim();
-                        if (v === "CONCLUÍDO") v = "CONCLUIDO";
-                        if (currentFilter === "VAZIO") return v === "";
-                        return v === currentFilter;
-                    });
-                }
-
-                rowsToRender.forEach(row => {
-                    let rowStatusClass = statusCol ? getStatusClass(row[statusCol]) : "";
-                    html += `<tr id="tr-${row.id}" data-status="${rowStatusClass}">
-                                <td class="td-actions">
-                                    <div class="action-btns">
-                                        <button class="btn btn-outline-secondary btn-icon drag-handle" onpointerdown="startDrag(event, '${key}', '${row.id}')" title="Segurar e arrastar para reordenar"><i class="bi bi-grip-vertical"></i></button>
-                                        <button class="btn btn-outline-secondary btn-icon" onclick="duplicateRow('${key}', '${row.id}')" title="Duplicar"><i class="bi bi-files"></i></button>
-                                        <button class="btn btn-outline-danger btn-icon" onclick="deleteRow('${key}', '${row.id}')" title="Excluir"><i class="bi bi-trash3"></i></button>
-                                    </div>
-                                </td>`;
-                    
-                    tabData.columns.forEach(col => {
-                        html += `<td data-label="${escapeHtml(col)}">${renderCell(key, row, col)}</td>`;
-                    });
-                    
-                    html += `</tr>`;
-                });
-
-                html += `
-                                </tbody>
-                            </table>
-                        </div>
+        function playerCardHTML() {
+            const L = levelInfo(totalXP(), playerCost);
+            const st = streak();
+            const esc = gameState.escudos || 0;
+            const nome = gameState.nome || 'Jogador';
+            return `<section class="player-card" aria-label="Seu nível">
+                <div class="pc-top">
+                    <div class="avatar" aria-hidden="true">${escapeHtml(nome.trim().charAt(0).toUpperCase() || 'J')}<span class="lv-badge">${L.lv}</span></div>
+                    <div class="pc-name"><div class="pc-nome">${escapeHtml(nome)}</div><div class="pc-sub">Nível ${L.lv} · <b>${escapeHtml(currentTitle())}</b></div></div>
+                    <div class="pc-chips">
+                        <span class="chip-fire">${icon('flame', 16)} ${st} ${st === 1 ? 'dia' : 'dias'}</span>
+                        <span class="chip-shield">${icon('shield', 14)} ${esc} ${esc === 1 ? 'escudo' : 'escudos'}</span>
                     </div>
-                `;
-                container.innerHTML += html;
+                </div>
+                <div>
+                    <div class="xp-row"><span class="xp-num">${fmt(L.cur)} / ${fmt(L.need)} XP</span><span>faltam ${fmt(L.need - L.cur)} para o nível ${L.lv + 1}</span></div>
+                    <div class="xp-bar" style="margin-top:6px" role="progressbar" aria-label="XP do nível" aria-valuenow="${L.pct}" aria-valuemin="0" aria-valuemax="100"><div style="width:${L.pct}%"></div></div>
+                </div>
+            </section>`;
+        }
+
+        function missionsHTML() {
+            const list = todaysMissions();
+            const m = gameState.missoes || {};
+            const n = list.filter(x => x.done).length;
+            let html = '<div class="card-w missions">';
+            list.forEach(x => {
+                html += `<div class="mission${x.done ? ' done' : ''}">
+                    <span class="m-check">${icon('check', 16)}</span>
+                    <span class="m-text">${escapeHtml(x.text)}${x.goal > 1 && !x.done ? `<small>${x.cur} de ${x.goal}</small>` : ''}</span>
+                    <span class="xp-pill">${x.done ? 'feita' : '+' + x.xp + ' XP'}</span>
+                </div>`;
             });
+            html += `<div class="chest${m.bau ? ' open' : ''}">
+                    <span class="chest-icon">${icon('chest', 22)}</span>
+                    <div style="flex:1"><div style="font:700 0.9rem var(--font-display);color:var(--text-heading)">${m.bau ? 'Baú aberto!' : 'Baú diário · ' + n + ' de ' + list.length}</div>
+                    <div class="pips">${list.map(x => `<span class="${x.done ? 'on' : ''}"></span>`).join('')}</div></div>
+                    <span class="xp-pill">+${XP_BAU} XP</span>
+                </div></div>`;
+            return html;
+        }
+
+        function worldTile(k, big) {
+            const w = world(k);
+            const rows = appData[k].rows || [];
+            const L = levelInfo(worldXP(k), worldCost);
+            const done = rows.filter(r => r && isDone(k, r)).length;
+            return `<button class="world-tile${big ? ' big' : ''}" style="${worldVars(k)}" onclick="go('mundo','${k}')">
+                <span class="wt-icon">${worldIcon(k, big ? 24 : 20)}</span>
+                <span class="wt-name">${escapeHtml(w.name)}</span>
+                <span class="wt-meta">Nv ${L.lv} · ${done}/${rows.length}</span>
+                ${big ? `<span class="mini-bar" aria-hidden="true"><span style="width:${L.pct}%"></span></span><span class="muted" style="font-size:.74rem;font-weight:600">${fmt(L.cur)} / ${fmt(L.need)} XP do mundo</span>` : ''}
+            </button>`;
+        }
+
+        function continueItems() {
+            const out = [];
+            orderedTabKeys().forEach(k => {
+                const c = cols(k);
+                if (!c.prog) return;
+                (appData[k].rows || []).forEach(r => {
+                    if (!r || isDone(k, r) || isBoss(r)) return;
+                    const st = c.status ? normStatus(r[c.status]) : '';
+                    const ph = rowPhase(k, r);
+                    if (st === 'ABERTO' || ph > 0) out.push({ k, r, ph });
+                });
+            });
+            out.sort((a, b) => String(b.r.tocadoEm || '').localeCompare(String(a.r.tocadoEm || '')) || b.ph - a.ph);
+            return out.slice(0, 3);
+        }
+
+        function renderBase() {
+            const cont = continueItems();
+            let contHTML = '';
+            cont.forEach(({ k, r, ph }) => {
+                const c = cols(k);
+                contHTML += `<div class="card-w continue-item" style="${worldVars(k)}">
+                    <span class="ci-icon">${worldIcon(k, 22)}</span>
+                    <div class="ci-body">
+                        <div class="ci-title">${escapeHtml(r[c.item] || '')}</div>
+                        <div class="segs-static" aria-hidden="true">${[1, 2, 3, 4].map(n => `<span class="${n <= ph ? 'on' : ''}"></span>`).join('')}</div>
+                        <div class="ci-meta">Fase ${ph} de 4 · ${escapeHtml(world(k).name)}</div>
+                    </div>
+                    <button class="btn-3d btn-w btn-xs" onclick="advancePhase('${k}','${r.id}')">+1 fase</button>
+                </div>`;
+            });
+            if (!contHTML) contHTML = `<div class="card-w muted" style="padding:16px;font-weight:600">Nada em jogo agora. Abra um mundo e comece algo da fila.</div>`;
+            return `<div class="view">
+                ${playerCardHTML()}
+                <section class="stack">
+                    <div class="sec-head"><h2>Missões de hoje</h2><button class="link-btn" onclick="go('missoes')">Ver todas</button></div>
+                    ${missionsHTML()}
+                </section>
+                <section class="stack">
+                    <div class="sec-head"><h2>Continue de onde parou</h2></div>
+                    ${contHTML}
+                </section>
+                <section class="stack">
+                    <div class="sec-head"><h2>Seus mundos</h2><span class="muted" style="font-size:.8rem;font-weight:700">${orderedTabKeys().length} mundos</span></div>
+                    <div class="worlds-grid">${orderedTabKeys().map(k => worldTile(k, false)).join('')}</div>
+                </section>
+            </div>`;
+        }
+
+        function renderMundos() {
+            return `<div class="view">
+                <h1 style="font-size:1.6rem;font-weight:800">Mundos</h1>
+                <p class="muted" style="margin:-8px 0 0;font-weight:500">Cada área da sua vida tem nível próprio. Zere itens para subir.</p>
+                <div class="worlds-grid">${orderedTabKeys().map(k => worldTile(k, true)).join('')}</div>
+            </div>`;
+        }
+
+        // ===== Um mundo (lista de itens) =====
+        const FILTERS = [
+            { id: 'ALL', label: 'Todos' },
+            { id: 'ABERTO', label: 'Em jogo' },
+            { id: 'AGUARDANDO', label: 'Na fila' },
+            { id: 'VAZIO', label: 'Novos' },
+            { id: 'CONCLUIDO', label: 'Zerados' }
+        ];
+        const STATUS_LABEL = { CONCLUIDO: 'Zerado', ABERTO: 'Em jogo', AGUARDANDO: 'Na fila', '': 'Novo' };
+        function statusBucket(v) {
+            const s = normStatus(v);
+            if (s === 'CONCLUIDO' || s === 'ABERTO' || s === 'AGUARDANDO') return s;
+            return 'VAZIO';
+        }
+
+        function renderWorld(key) {
+            const tabData = appData[key];
+            const w = world(key);
+            const c = cols(key);
+            const rows = tabData.rows || [];
+            const L = levelInfo(worldXP(key), worldCost);
+            const done = rows.filter(r => r && isDone(key, r)).length;
+            const filter = filterConfig[key] || 'ALL';
+
+            // Ordem padrão por status (Em jogo, Na fila, Novo, Zerado), até o usuário ordenar manualmente
+            if (c.status && !sortConfig[key]) {
+                tabData.rows.sort((a, b) => statusSortPriority(a[c.status]) - statusSortPriority(b[c.status]));
+            }
+
+            let chips = '';
+            if (c.status) {
+                FILTERS.forEach(f => {
+                    const n = f.id === 'ALL' ? rows.length : rows.filter(r => r && statusBucket(r[c.status]) === f.id).length;
+                    chips += `<button class="chip" aria-pressed="${filter === f.id}" onclick="filterByStatus('${key}','${f.id}')">${f.label} · ${n}</button>`;
+                });
+            }
+
+            const bosses = rows.filter(r => isBoss(r) && !isDone(key, r));
+            let bossHTML = '';
+            if (bosses.length && filter !== 'CONCLUIDO') {
+                bossHTML = `<section class="stack"><div class="sec-head"><h2>Chefões</h2></div>${bosses.map(r => bossCard(key, r)).join('')}</section>`;
+            }
+
+            let listHTML;
+            if (filter === 'CONCLUIDO') {
+                listHTML = collectionHTML(key);
+            } else {
+                listHTML = tableHTML(key, filter);
+            }
+
+            return `<div class="view" style="${worldVars(key)}">
+                <header class="world-head">
+                    <div class="wh-top">
+                        <button class="icon-btn" onclick="go('mundos')" aria-label="Voltar para os mundos">${icon('back', 22)}</button>
+                        <span class="wh-icon">${worldIcon(key, 26)}</span>
+                        <div style="flex:1;min-width:0"><h1>${escapeHtml(w.name)}</h1><div class="wh-sub">Mundo nível ${L.lv} · ${done} de ${rows.length} zerados</div></div>
+                    </div>
+                    <div>
+                        <div class="wh-xp"><span>${fmt(L.cur)} / ${fmt(L.need)} XP do mundo</span><span>próximo: nível ${L.lv + 1}</span></div>
+                        <div class="wh-bar" style="margin-top:6px"><div style="width:${L.pct}%"></div></div>
+                    </div>
+                </header>
+                <div class="controls">
+                    <div class="chips" role="group" aria-label="Filtrar por status">${chips}</div>
+                    ${c.status ? `<button class="btn-3d btn-light3 btn-xs" onclick="sortTable('${key}', '${escapeAttr(c.status)}')" title="Ordenar por status"><i class="bi bi-sort-down"></i> Status</button>` : ''}
+                    <button class="btn-3d btn-primary3" onclick="openAddModal('${key}')">${icon('plus', 18)} Novo item</button>
+                </div>
+                ${bossHTML}
+                ${listHTML}
+            </div>`;
+        }
+
+        function tableHTML(key, filter) {
+            const tabData = appData[key];
+            const c = cols(key);
+            let rows = (tabData.rows || []).filter(r => r && !(isBoss(r) && !isDone(key, r)));
+            if (c.status && filter !== 'ALL') rows = rows.filter(r => statusBucket(r[c.status]) === filter);
+
+            let head = '<th style="width:150px;cursor:default">Ações</th>';
+            tabData.columns.forEach(col => {
+                let sortIcon = '';
+                if (sortConfig[key] && sortConfig[key].col === col) {
+                    sortIcon = sortConfig[key].dir === 'asc' ? '<i class="bi bi-caret-up-fill sort-icon"></i>' : '<i class="bi bi-caret-down-fill sort-icon"></i>';
+                }
+                const label = col === c.prog ? 'Fases' : col;
+                head += `<th onclick="sortTable('${key}', '${escapeAttr(col)}')" title="Clique para ordenar">${escapeHtml(label)} ${sortIcon}</th>`;
+            });
+
+            let body = '';
+            rows.forEach(row => {
+                const rowStatusClass = c.status ? getStatusClass(row[c.status]) : '';
+                const canBoss = key === 'metas' && !isDone(key, row);
+                body += `<tr id="tr-${row.id}" data-status="${rowStatusClass}">
+                    <td class="td-actions"><div class="action-btns">
+                        <button class="btn-icon drag-handle" onpointerdown="startDrag(event, '${key}', '${row.id}')" title="Segurar e arrastar para reordenar" aria-label="Arrastar para reordenar"><i class="bi bi-grip-vertical"></i></button>
+                        <button class="btn-icon" onclick="duplicateRow('${key}', '${row.id}')" title="Duplicar" aria-label="Duplicar"><i class="bi bi-files"></i></button>
+                        ${canBoss ? `<button class="btn-icon boss" onclick="openBossEditor('${key}', '${row.id}')" title="Transformar em chefão" aria-label="Transformar em chefão">${icon('sword', 16)}</button>` : ''}
+                        <button class="btn-icon danger" onclick="deleteRow('${key}', '${row.id}')" title="Excluir" aria-label="Excluir"><i class="bi bi-trash3"></i></button>
+                    </div></td>`;
+                tabData.columns.forEach(col => {
+                    const cu = col.toUpperCase().trim();
+                    let cls = '';
+                    if (col === c.item) cls = 'td-item';
+                    else if (col === c.prog) cls = 'td-phase';
+                    else if (cu === 'TIPO' || cu === 'STREAMING' || cu === 'CONSOLE') cls = 'td-hide-mobile';
+                    body += `<td data-label="${escapeHtml(col)}"${cls ? ` class="${cls}"` : ''}>${renderCell(key, row, col)}</td>`;
+                });
+                body += '</tr>';
+            });
+            if (!rows.length) body = `<tr><td colspan="${tabData.columns.length + 1}" style="padding:24px;text-align:center" class="muted">Nada aqui por enquanto.</td></tr>`;
+
+            return `<div class="list-box"><div class="table-responsive"><table class="items"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+        }
+
+        function collectionHTML(key) {
+            const c = cols(key);
+            const rows = (appData[key].rows || []).filter(r => r && isDone(key, r));
+            if (!rows.length) return `<div class="card-w muted" style="padding:20px;text-align:center">Sua coleção ainda está vazia. Zere algo para ganhar o primeiro card.</div>`;
+            const order = { lendario: 0, epico: 1, raro: 2, comum: 3 };
+            const sorted = rows.slice().sort((a, b) => order[rarity(rowNota(key, a))] - order[rarity(rowNota(key, b))]);
+            return `<div class="collection" style="${worldVars(key)}">${sorted.map(r => {
+                const n = rowNota(key, r), rr = cardTier(key, n);
+                return `<button class="ccard r-${rr}" onclick="openZerou('${key}','${r.id}',0,'rever')">
+                    <span class="cc-tier t-${rr}">${tierLabel(key, rr)}</span>
+                    <span class="cc-title">${escapeHtml(r[c.item] || '')}</span>
+                    <span class="cc-nota t-${rr}">${!c.nota ? (r.zeradoEm ? 'em ' + fmtDate(r.zeradoEm) : '') : isNaN(n) ? 'sem nota' : 'Nota ' + n}</span>
+                </button>`;
+            }).join('')}</div>`;
+        }
+
+        function bossCard(key, row) {
+            const c = cols(key);
+            const et = row.chefao.etapas;
+            const d = bossDone(row), t = et.length;
+            const hp = Math.round(100 * (t - d) / t);
+            const cur = et.findIndex(e => !e.feito);
+            const steps = et.map((e, i) => `<div class="boss-step${e.feito ? ' done' : i === cur ? ' cur' : ''}">Golpe ${i + 1}${e.feito ? ' ✓' : ''}<span>${escapeHtml(e.nome || '')}</span></div>`).join('');
+            return `<section class="boss-card" aria-label="Chefão ${escapeHtml(row[c.item] || '')}">
+                <div class="boss-top">
+                    <span class="boss-icon">${icon('shield', 30)}</span>
+                    <div style="flex:1;min-width:0"><span class="boss-badge">CHEFÃO</span><h3 class="boss-name">${escapeHtml(row[c.item] || '')}</h3></div>
+                </div>
+                <div>
+                    <div class="hp-row"><span style="color:var(--fire-light)">Vida: ${t - d} de ${t} etapas</span><span style="color:var(--text-sidebar)">−${100 - hp}% de vida</span></div>
+                    <div class="hp-bar" style="margin-top:6px"><div style="width:${hp}%"></div></div>
+                </div>
+                <div class="boss-steps">${steps}</div>
+                <div class="boss-foot">
+                    <div class="bf-text">Cada golpe vale <b>+${XP_GOLPE} XP</b>. Derrotar: <b>+${XP_CHEFAO} XP</b>.</div>
+                    <button class="btn-3d btn-dark btn-xs" onclick="openBossEditor('${key}','${row.id}')" aria-label="Editar etapas">${icon('edit', 16)}</button>
+                    ${d > 0 ? `<button class="btn-3d btn-dark btn-xs" onclick="bossHit('${key}','${row.id}',-1)" aria-label="Desfazer último golpe">${icon('undo', 16)}</button>` : ''}
+                    <button class="btn-3d btn-xp" onclick="bossHit('${key}','${row.id}',1)">${icon('sword', 18)} Dar golpe</button>
+                </div>
+            </section>`;
+        }
+
+        // ===== Missões e ofensiva =====
+        function renderMissoes() {
+            const st = streak();
+            const ws = weekStart(todayStr());
+            const today = todayStr();
+            const names = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+            let week = '';
+            for (let i = 0; i < 7; i++) {
+                const d = addDays(ws, i);
+                const l = (gameState.log || {})[d];
+                let cls = '', inner = '';
+                if (isActive(d)) { cls = 'on'; inner = icon('flame', 16); }
+                else if (l && l.escudo) { cls = 'shield'; inner = icon('shield', 14); }
+                else if (d === today) cls = 'today';
+                week += `<div class="${d === today ? 'is-today' : ''}">${d === today ? 'Hoje' : names[i]}<span class="dot ${cls}" style="color:#fff">${inner}</span></div>`;
+            }
+            const w = weekly();
+            const bars = [...Array(w.def.goal)].map((_, i) => `<span class="${i < w.cur ? 'on' : ''}"></span>`).join('');
+            const esc = gameState.escudos || 0;
+            return `<div class="view">
+                <section class="streak-card">
+                    <div class="sc-top">
+                        <span class="sc-flame">${icon('flame', 32)}</span>
+                        <div style="flex:1"><div class="sc-num">${st} ${st === 1 ? 'dia' : 'dias'}</div><div style="font-size:.84rem;font-weight:600;color:var(--text-sidebar);margin-top:4px">de ofensiva · recorde: ${Math.max(gameState.recorde || 0, st)} dias</div></div>
+                        <span class="chip-shield">${icon('shield', 14)} ${esc} ${esc === 1 ? 'escudo' : 'escudos'}</span>
+                    </div>
+                    <div class="week">${week}</div>
+                    <div style="font-size:.8rem;font-weight:600;color:var(--text-sidebar)">${isActive(today) ? 'Fogo aceso hoje. Volte amanhã para continuar.' : 'Avance uma fase, zere ou dê nota em algo hoje para manter o fogo.'}</div>
+                </section>
+                <section class="stack">
+                    <div class="sec-head"><h2>Diárias</h2><span class="muted" style="font-size:.8rem;font-weight:700">renovam à meia-noite</span></div>
+                    ${missionsHTML()}
+                </section>
+                <section class="stack">
+                    <div class="sec-head"><h2>Desafio da semana</h2></div>
+                    <div class="card-w" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+                        <div style="font:700 1rem var(--font-display);color:var(--text-heading)">${escapeHtml(w.def.text)}</div>
+                        <div class="challenge-bar">${bars}</div>
+                        <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.8rem;font-weight:700"><span class="muted">${w.done ? 'Concluído!' : w.cur + ' de ' + w.def.goal + ' · termina ' + fmtDate(w.end)}</span><span style="color:var(--primary-dark)">+${XP_SEMANA} XP e 1 escudo</span></div>
+                    </div>
+                </section>
+                <p class="muted" style="font-size:.84rem;font-weight:500;margin:0">Escudos: você guarda até 2. Se passar um dia sem jogar, um escudo protege a ofensiva sozinho. Perder a ofensiva não tira XP; o recorde fica guardado.</p>
+            </div>`;
+        }
+
+        // ===== Troféus =====
+        function renderTrofeus() {
+            const s = stats();
+            const list = trophyList();
+            const states = list.map(t => trophyState(t, s));
+            const count = [0, 0, 0, 0];
+            states.forEach(x => count[x.tier]++);
+            if (!selectedTrophy || !list.find(t => t.id === selectedTrophy)) selectedTrophy = list[0] && list[0].id;
+            const grid = list.map((t, i) => {
+                const x = states[i];
+                return `<button class="trophy tier-${x.tier}" aria-pressed="${t.id === selectedTrophy}" onclick="selectTrophy('${t.id}')">
+                    <span class="medal-ring">${icon(t.icon, 22)}</span>
+                    <span class="tr-name">${escapeHtml(t.name)}</span>
+                    <span class="tr-tier">${TIER_NAME[x.tier]}</span>
+                </button>`;
+            }).join('');
+            const si = list.findIndex(t => t.id === selectedTrophy);
+            const sel = list[si], ss = states[si];
+            const pct = ss.tier === 3 ? 100 : Math.max(3, Math.round(100 * ss.v / ss.next));
+            const nextName = ss.tier === 0 ? 'bronze' : ss.tier === 1 ? 'prata' : 'ouro';
+            const earned = list.length - count[0];
+            return `<div class="view">
+                <div>
+                    <h1 style="font-size:1.6rem;font-weight:800">Troféus</h1>
+                    <p class="muted" style="margin:4px 0 0;font-weight:600">${earned} de ${list.length} conquistados · toque para ver</p>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <span class="count-chip" style="background:#FEF3C7;color:#92400E">${count[3]} ouro</span>
+                    <span class="count-chip" style="background:#EEEFF7;color:#3F3F5C">${count[2]} prata</span>
+                    <span class="count-chip" style="background:#FFEDD5;color:#7C2D12">${count[1]} bronze</span>
+                </div>
+                <section class="trophy-detail" aria-live="polite">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${escapeHtml(sel.name)}</h3><span style="font:800 .78rem var(--font-display);color:var(--xp-light)">${TIER_NAME[ss.tier]}</span></div>
+                    <div style="font-size:.86rem;font-weight:600;color:var(--text-sidebar)">${escapeHtml(sel.desc)}</div>
+                    <div class="td-bar"><div style="width:${pct}%"></div></div>
+                    <div style="font-size:.8rem;font-weight:700">${ss.tier === 3 ? 'Ouro conquistado!' : `Rumo ao ${nextName}: ${fmt(ss.v)} de ${fmt(ss.next)} ${sel.unit}`}${ss.tier > 0 ? ` · libera o título “${escapeHtml(sel.title || sel.name)}”` : ''}</div>
+                </section>
+                <div class="trophy-grid">${grid}</div>
+            </div>`;
+        }
+        function selectTrophy(id) { selectedTrophy = id; renderAll(); }
+
+        // ===== Perfil =====
+        function renderPerfil() {
+            const titles = unlockedTitles();
+            const cur = currentTitle();
+            const s = stats();
+            const attrs = orderedTabKeys().map(k => {
+                const L = levelInfo(worldXP(k), worldCost);
+                return `<div class="attr" style="${worldVars(k)}"><span class="a-name">${escapeHtml(world(k).attr)}</span><span class="a-bar"><span style="width:${L.pct}%"></span></span><span class="a-lv">Nv ${L.lv}</span></div>`;
+            }).join('');
+            const xpRows = [
+                ['Avançar uma fase', '+' + XP_FASE],
+                ...orderedTabKeys().map(k => ['Zerar em ' + world(k).name, '+' + world(k).xp]),
+                ['Dar nota a algo zerado', '+' + XP_NOTA],
+                ['Golpe em chefão · derrotar', '+' + XP_GOLPE + ' · +' + XP_CHEFAO],
+                ['Missão diária · baú (3 de 3)', '+10 a 25 · +' + XP_BAU],
+                ['Desafio da semana', '+' + XP_SEMANA + ' e 1 escudo']
+            ].map(([a, b]) => `<tr><td>${escapeHtml(a)}</td><td>${b}</td></tr>`).join('');
+            return `<div class="view">
+                ${playerCardHTML()}
+                <section class="card-w" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+                    <div class="sec-head"><h2>Título equipado</h2><button class="link-btn" onclick="editName()">Trocar nome</button></div>
+                    <div class="title-chips" role="group" aria-label="Escolha seu título">
+                        ${titles.map(t => `<button class="title-chip" aria-pressed="${t === cur}" onclick="setTitle('${escapeAttr(t)}')">${escapeHtml(t)}</button>`).join('')}
+                    </div>
+                    <span class="muted" style="font-size:.8rem;font-weight:600">Novos títulos chegam com os troféus.</span>
+                </section>
+                <section class="stack">
+                    <div class="sec-head"><h2>Atributos</h2></div>
+                    <div class="card-w" style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">${attrs}</div>
+                </section>
+                <section class="stack">
+                    <div class="sec-head"><h2>Seu 2026 até agora</h2></div>
+                    <div class="stats">
+                        <div class="stat"><b style="color:#15803D">${s.total}</b><span>zerados</span></div>
+                        <div class="stat"><b style="color:#C2410C">${Math.max(gameState.recorde || 0, streak())}</b><span>dias recorde</span></div>
+                        <div class="stat"><b style="color:#92400E">${s.lend}</b><span>lendários</span></div>
+                        <div class="stat"><b style="color:var(--primary-dark)">${s.notas}</b><span>notas</span></div>
+                    </div>
+                </section>
+                <button class="btn-3d btn-primary3" style="justify-content:flex-start;padding:14px 16px;min-height:64px;text-align:left" onclick="openRetro()">
+                    ${icon('play', 24)}<span><span style="display:block;font-size:1rem">Retrospectiva de ${monthName()}</span><span style="display:block;font:600 .78rem var(--font-body);margin-top:2px">Seus destaques do mês</span></span>
+                </button>
+                <details class="card-w howto">
+                    <summary>Como ganhar XP</summary>
+                    <div class="howto-body">
+                        <table class="xp-table">${xpRows}</table>
+                        <p class="muted" style="font-size:.82rem;margin:10px 0 0">Nível do jogador: ${'200 × nível + 100'} XP para subir. Nível do mundo: ${'80 × nível + 40'}. Nada tira XP; desfazer um item só devolve o XP dele.</p>
+                    </div>
+                </details>
+                <section class="card-w" style="padding:14px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="color:#15803D">${icon('cloud', 20)}</span>
+                    <span class="sync-status-text muted" style="flex:1;font-size:.84rem;font-weight:600">${escapeHtml(syncStatus)}</span>
+                    <button class="btn-3d btn-light3 btn-xs" onclick="exportData()"><i class="bi bi-download"></i> Fazer backup</button>
+                </section>
+            </div>`;
+        }
+        function setTitle(t) { gameState.titulo = t; saveGame(); renderAll(); }
+        function editName() {
+            const n = prompt('Como você quer ser chamado?', gameState.nome || '');
+            if (n === null) return;
+            gameState.nome = n.trim().slice(0, 30) || 'Jogador';
+            saveGame(); renderAll();
+        }
+        function monthName() { return new Date().toLocaleDateString('pt-BR', { month: 'long' }); }
+
+        // ==========================================
+        // AÇÕES DO JOGO
+        // ==========================================
+        function touch(row) { row.tocadoEm = new Date().toISOString(); }
+
+        // Guarda os dados, confere missões/desafio/troféus e mostra o retorno (+XP, nível, vitória)
+        function commit(before, zerou) {
+            autoSave();
+            checkMissions();
+            checkWeekly();
+            updateRecord();
+            saveGame();
+            const after = snapshot();
+            const gained = after.xp - before.xp;
+            renderAll();
+            if (zerou) openZerou(zerou.k, zerou.id, gained, 'novo');
+            else if (gained > 0) showToast(`+${gained} XP`, 'xp');
+            if (after.lv > before.lv) levelUp(after.lv);
+            checkTrophies(false);
+        }
+
+        function advancePhase(key, id) {
+            const row = findRow(key, id);
+            if (row) changePhase(key, id, rowPhase(key, row) + 1);
+        }
+        function setPhase(key, id, n) {
+            const row = findRow(key, id);
+            if (!row) return;
+            const cur = rowPhase(key, row);
+            changePhase(key, id, n === cur ? n - 1 : n);
+        }
+        function changePhase(key, id, newPh) {
+            const row = findRow(key, id);
+            if (!row) return;
+            const c = cols(key);
+            const old = rowPhase(key, row);
+            newPh = Math.max(0, Math.min(4, newPh));
+            if (newPh === old) return;
+            const before = snapshot();
+            const wasDone = isDone(key, row);
+            if (c.prog) row[c.prog] = String(newPh * 25);
+            let zerou = null;
+            if (c.status) {
+                const st = normStatus(row[c.status]);
+                if (newPh === 4) {
+                    row[c.status] = 'CONCLUIDO';
+                } else if (newPh > 0) {
+                    if (st === 'AGUARDANDO') logEvent('q', key);
+                    row[c.status] = 'ABERTO';
+                } else if (wasDone) {
+                    row[c.status] = '';
+                }
+            }
+            for (let i = old; i < newPh; i++) logEvent('f', key);
+            if (newPh === 4 && !wasDone) {
+                row.zeradoEm = todayStr();
+                logEvent('z', key);
+                zerou = { k: key, id };
+            }
+            touch(row);
+            commit(before, zerou);
+        }
+
+        function setStatus(key, id, value) {
+            const row = findRow(key, id);
+            const c = cols(key);
+            if (!row || !c.status) return;
+            const old = normStatus(row[c.status]), nv = normStatus(value);
+            if (old === nv) return;
+            const before = snapshot();
+            const wasDone = old === 'CONCLUIDO', nowDone = nv === 'CONCLUIDO';
+            row[c.status] = value;
+            let zerou = null;
+            if (nowDone && !wasDone) {
+                if (c.prog) {
+                    const oldPh = Math.min(4, Math.floor((parseInt(row[c.prog]) || 0) / 25));
+                    for (let i = oldPh; i < 4; i++) logEvent('f', key);
+                    row[c.prog] = '100';
+                }
+                row.zeradoEm = todayStr();
+                logEvent('z', key);
+                zerou = { k: key, id };
+            }
+            if (wasDone && !nowDone && c.prog && (parseInt(row[c.prog]) || 0) >= 100) row[c.prog] = '75';
+            if (old === 'AGUARDANDO' && nv === 'ABERTO') logEvent('q', key);
+            touch(row);
+            commit(before, zerou);
+        }
+
+        function setNota(key, id, value) {
+            const row = findRow(key, id);
+            const c = cols(key);
+            if (!row || !c.nota) return;
+            const clean = String(value).replace(/[^0-9.,]/g, '').replace(',', '.').trim();
+            if (String(row[c.nota] === undefined ? '' : row[c.nota]) === clean) { renderAll(); return; }
+            const before = snapshot();
+            const had = !isNaN(rowNota(key, row));
+            row[c.nota] = clean;
+            if (isDone(key, row) && !had && clean !== '') logEvent('n', key);
+            touch(row);
+            commit(before, null);
+        }
+
+        // ===== Chefões (metas grandes divididas em golpes) =====
+        function bossHit(key, id, delta) {
+            const row = findRow(key, id);
+            if (!isBoss(row)) return;
+            const c = cols(key);
+            const before = snapshot();
+            const et = row.chefao.etapas;
+            if (delta > 0) {
+                const i = et.findIndex(e => !e.feito);
+                if (i < 0) return;
+                et[i].feito = true;
+                logEvent('f', key);
+            } else {
+                let i = -1;
+                et.forEach((e, j) => { if (e.feito) i = j; });
+                if (i < 0) return;
+                et[i].feito = false;
+            }
+            const zerou = syncBossStatus(key, row);
+            touch(row);
+            commit(before, zerou);
+        }
+        function syncBossStatus(key, row) {
+            const c = cols(key);
+            const d = bossDone(row), t = row.chefao.etapas.length;
+            const wasDone = isDone(key, row);
+            if (c.prog) row[c.prog] = String(Math.round(100 * d / t));
+            if (!c.status) return null;
+            if (d === t) {
+                if (!wasDone) {
+                    row[c.status] = 'CONCLUIDO';
+                    row.zeradoEm = todayStr();
+                    logEvent('z', key);
+                    return { k: key, id: row.id };
+                }
+            } else {
+                row[c.status] = d > 0 ? 'ABERTO' : (wasDone ? '' : row[c.status]);
+            }
+            return null;
+        }
+        let bossCtx = null;
+        function openBossEditor(key, id) {
+            const row = findRow(key, id);
+            if (!row) return;
+            const c = cols(key);
+            bossCtx = { key, id };
+            const etapas = isBoss(row) ? row.chefao.etapas.map(e => e.nome || '').join('\n') : 'Etapa 1\nEtapa 2\nEtapa 3\nEtapa 4';
+            showOverlay(`<div class="ov-panel light" role="dialog" aria-modal="true" aria-labelledby="bossTitle">
+                <button class="icon-btn ov-close" onclick="closeOverlay()" aria-label="Fechar">${icon('x', 20)}</button>
+                <div><span class="boss-badge">CHEFÃO</span><h2 id="bossTitle" style="font-size:1.25rem;margin-top:8px;padding-right:40px">${escapeHtml(row[c.item] || '')}</h2></div>
+                <p class="muted" style="margin:0;font-size:.88rem">Divida a meta em etapas, uma por linha (de 2 a 8). Cada etapa é um golpe que vale +${XP_GOLPE} XP; derrotar o chefão vale +${XP_CHEFAO} XP.</p>
+                <label for="bossSteps" style="font:700 .85rem var(--font-display)">Etapas</label>
+                <textarea id="bossSteps" rows="6">${escapeHtml(etapas)}</textarea>
+                <div class="z-actions">
+                    ${isBoss(row) ? `<button class="btn-3d btn-light3" onclick="removeBoss()">Voltar a ser meta</button>` : ''}
+                    <button class="btn-3d btn-xp" onclick="saveBoss()">${isBoss(row) ? 'Salvar' : 'Criar chefão'}</button>
+                </div>
+            </div>`);
+            setTimeout(() => { const t = document.getElementById('bossSteps'); if (t) t.focus(); }, 50);
+        }
+        function saveBoss() {
+            if (!bossCtx) return;
+            const { key, id } = bossCtx;
+            const row = findRow(key, id);
+            if (!row) return;
+            const names = document.getElementById('bossSteps').value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 8);
+            if (names.length < 2) { alert('Coloque pelo menos 2 etapas.'); return; }
+            const before = snapshot();
+            const old = isBoss(row) ? row.chefao.etapas : [];
+            row.chefao = { etapas: names.map((nome, i) => ({ nome, feito: !!(old[i] && old[i].feito) })) };
+            const zerou = syncBossStatus(key, row);
+            touch(row);
+            closeOverlay();
+            commit(before, zerou);
+        }
+        function removeBoss() {
+            if (!bossCtx) return;
+            const row = findRow(bossCtx.key, bossCtx.id);
+            if (!row) return;
+            const before = snapshot();
+            delete row.chefao;
+            const c = cols(bossCtx.key);
+            if (c.prog) row[c.prog] = String(Math.floor((parseInt(row[c.prog]) || 0) / 25) * 25);
+            closeOverlay();
+            commit(before, null);
+        }
+
+        // ===== Tela de vitória ("Zerou!") e card da coleção =====
+        let zerouCtx = null;
+        function openZerou(key, id, gained, mode) {
+            zerouCtx = { key, id, gained: gained || 0, mode: mode || 'novo' };
+            if (zerouCtx.mode === 'novo') triggerConfetti();
+            renderZerou();
+        }
+        function renderZerou() {
+            if (!zerouCtx) return;
+            const { key, id, gained, mode } = zerouCtx;
+            const row = findRow(key, id);
+            if (!row) { closeOverlay(); return; }
+            const c = cols(key);
+            const w = world(key);
+            const n = rowNota(key, row);
+            const rr = cardTier(key, n);
+            const meta = appData[key].columns.filter(col => col !== c.item && col !== c.status && col !== c.prog && col !== c.nota && String(row[col] || '').trim() !== '').map(col => row[col]).join(' · ');
+            const title = mode === 'rever' ? 'Seu card' : isBoss(row) ? 'Chefão derrotado!' : 'Zerou!';
+            let picker = '';
+            if (c.nota) {
+                picker = `<div class="nota-pick">
+                    <div class="np-head"><h3>${isNaN(n) ? 'Que nota você dá?' : 'Sua nota'}</h3><small>7–8 Raro · 9 Épico · 10 Lendário</small></div>
+                    <div class="np-grid" role="group" aria-label="Nota de 1 a 10">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => `<button aria-pressed="${n === v}" onclick="pickNota(${v})">${v}</button>`).join('')}</div>
+                    ${isNaN(n) && isDone(key, row) ? `<small>Dar nota vale +${XP_NOTA} XP</small>` : ''}
+                </div>`;
+            }
+            showOverlay(`<div class="ov-panel" role="dialog" aria-modal="true" aria-labelledby="zTitle">
+                <button class="icon-btn ov-close" onclick="closeOverlay()" aria-label="Fechar">${icon('x', 20)}</button>
+                <h2 id="zTitle" class="z-title">${title}</h2>
+                ${mode !== 'rever' ? `<div class="z-chips">${gained > 0 ? `<span class="xp-pill big">+${gained} XP</span>` : ''}<span class="z-chip">${icon('flame', 14)} Ofensiva: ${streak()} ${streak() === 1 ? 'dia' : 'dias'}</span></div>` : ''}
+                <div class="rcard r-${rr}" style="${worldVars(key)}">
+                    <div class="rc-top"><span class="t-${rr}">${tierLabel(key, rr)}</span><span class="rc-world">${escapeHtml(w.name)}</span></div>
+                    <div class="rc-art">${worldIcon(key, 52)}</div>
+                    <div class="rc-title">${escapeHtml(row[c.item] || '')}</div>
+                    ${meta ? `<div class="rc-meta">${escapeHtml(meta)}</div>` : ''}
+                    <div class="rc-foot"><b class="t-${rr}">${!c.nota ? '' : isNaN(n) ? '—' : 'Nota ' + n}</b><span>${row.zeradoEm ? 'zerado em ' + fmtDate(row.zeradoEm) : ''}</span></div>
+                </div>
+                ${picker}
+                <div class="z-actions">
+                    ${mode === 'rever' ? `<button class="btn-3d btn-dark" onclick="reopenItem()">Voltar a jogar</button>` : ''}
+                    <button class="btn-3d btn-xp" onclick="closeOverlay()">${mode === 'rever' ? 'Fechar' : 'Guardar na coleção'}</button>
+                </div>
+            </div>`);
+        }
+        function pickNota(v) {
+            if (!zerouCtx) return;
+            const before = totalXP();
+            setNota(zerouCtx.key, zerouCtx.id, String(v));
+            zerouCtx.gained += Math.max(0, totalXP() - before);
+            renderZerou();
+        }
+        function reopenItem() {
+            if (!zerouCtx) return;
+            const { key, id } = zerouCtx;
+            closeOverlay();
+            setStatus(key, id, 'ABERTO');
+        }
+
+        function openRetro() {
+            const now = new Date();
+            const prefix = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const sum = { f: 0, z: 0, n: 0, dias: 0 };
+            Object.keys(gameState.log || {}).forEach(d => {
+                if (!d.startsWith(prefix)) return;
+                const l = gameState.log[d];
+                sum.f += l.f || 0; sum.z += l.z || 0; sum.n += l.n || 0;
+                if (isActive(d)) sum.dias++;
+            });
+            const zerados = [];
+            orderedTabKeys().forEach(k => (appData[k].rows || []).forEach(r => {
+                if (r && isDone(k, r) && String(r.zeradoEm || '').startsWith(prefix)) zerados.push({ k, r, n: rowNota(k, r) });
+            }));
+            zerados.sort((a, b) => (isNaN(b.n) ? -1 : b.n) - (isNaN(a.n) ? -1 : a.n));
+            const best = zerados[0];
+            const box = (v, l) => `<div class="stat" style="box-shadow:none;background:var(--surface-game)"><b style="color:var(--xp-light)">${v}</b><span style="color:var(--text-sidebar)">${l}</span></div>`;
+            showOverlay(`<div class="ov-panel" role="dialog" aria-modal="true" aria-labelledby="retroTitle" style="align-items:stretch">
+                <button class="icon-btn ov-close" onclick="closeOverlay()" aria-label="Fechar">${icon('x', 20)}</button>
+                <h2 id="retroTitle" style="color:#fff;font-size:1.5rem;padding-right:44px">Retrospectiva de ${monthName()}</h2>
+                <div class="stats" style="grid-template-columns:repeat(2,minmax(0,1fr))">${box(sum.dias, 'dias jogando')}${box(sum.f, 'fases avançadas')}${box(zerados.length, 'itens zerados')}${box(sum.n, 'notas dadas')}</div>
+                ${best ? `<div style="background:var(--surface-game);border-radius:16px;padding:14px"><div style="font:800 .72rem var(--font-body);letter-spacing:.6px;color:var(--xp-light)">DESTAQUE DO MÊS</div><div style="font:800 1.1rem var(--font-display);margin-top:4px">${escapeHtml(best.r[cols(best.k).item] || '')}</div><div style="font-size:.82rem;font-weight:600;color:var(--text-sidebar)">${escapeHtml(world(best.k).name)}${isNaN(best.n) ? '' : ' · nota ' + best.n}</div></div>` : `<p style="margin:0;color:var(--text-sidebar);font-weight:600">Ainda não há itens zerados neste mês. A retrospectiva enche conforme você joga.</p>`}
+                <button class="btn-3d btn-xp" onclick="closeOverlay()">Fechar</button>
+            </div>`);
+        }
+
+        // ===== Sobreposição, avisos e comemorações =====
+        let lastFocus = null;
+        function showOverlay(html) {
+            const ov = document.getElementById('overlay');
+            if (ov.hidden) lastFocus = document.activeElement;
+            ov.innerHTML = `<div class="ov-backdrop" onclick="closeOverlay()"></div>${html}`;
+            ov.hidden = false;
+            document.body.classList.add('ov-open');
+            const btn = ov.querySelector('.ov-close');
+            if (btn) btn.focus();
+        }
+        function closeOverlay() {
+            const ov = document.getElementById('overlay');
+            ov.hidden = true;
+            ov.innerHTML = '';
+            document.body.classList.remove('ov-open');
+            zerouCtx = null;
+            bossCtx = null;
+            if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !document.getElementById('overlay').hidden) closeOverlay();
+        });
+        function showToast(html, kind) {
+            const area = document.getElementById('toastArea');
+            if (!area) return;
+            const el = document.createElement('div');
+            el.className = 'toast-g' + (kind ? ' ' + kind : '');
+            el.innerHTML = html;
+            area.appendChild(el);
+            setTimeout(() => el.classList.add('out'), 2200);
+            setTimeout(() => el.remove(), 2800);
+        }
+        function levelUp(lv) {
+            showToast(`${icon('bolt', 20)} Subiu para o nível ${lv}!`, 'level');
+            triggerConfetti();
+            if (navigator.vibrate) navigator.vibrate([20, 60, 20]);
+        }
+        function triggerConfetti() {
+            if (typeof confetti === "function") {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#6C5CE7', '#16A34A', '#F59E0B', '#DB2777'], disableForReducedMotion: true });
+            }
+            if (navigator.vibrate) navigator.vibrate(15);
         }
 
         // ==========================================
-        // ORDENAÇÃO DE COLUNAS (NOVO)
+        // ORDENAÇÃO E FILTRO
         // ==========================================
-        // Ordem padrão/de referência da coluna Status: Aberto, Aguardando, Selecione (vazio), Concluído
+        // Ordem padrão/de referência da coluna Status: Em jogo, Na fila, Novo (vazio), Zerado
         const STATUS_PRIORITY = { "ABERTO": 0, "AGUARDANDO": 1, "": 2, "CONCLUIDO": 3, "REALIZADO": 3 };
         function statusSortPriority(v) {
             let s = (v === undefined || v === null) ? "" : String(v).trim().toUpperCase();
             if (s === "CONCLUÍDO") s = "CONCLUIDO";
             return STATUS_PRIORITY.hasOwnProperty(s) ? STATUS_PRIORITY[s] : 1.5;
         }
-
-        // ==========================================
-        // FILTRO POR STATUS
-        // ==========================================
         function filterByStatus(tabKey, value) {
             filterConfig[tabKey] = value;
-            renderAllTabs();
-            showTab(tabKey);
+            renderAll();
         }
-
         function sortTable(tabKey, colName) {
             if (!sortConfig[tabKey]) sortConfig[tabKey] = { col: null, dir: 'asc' };
-            
-            let currentSort = sortConfig[tabKey];
-            
-            // Inverte direção se clicar na mesma coluna
+            const currentSort = sortConfig[tabKey];
             if (currentSort.col === colName) {
                 currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
             } else {
                 currentSort.col = colName;
                 currentSort.dir = 'asc';
             }
-
-            // Lógica de parser para descobrir se é número, texto, status ou vazio
             const parseVal = (v) => {
-                let colUpper = colName.toUpperCase().trim();
-
-                if (colUpper.includes("STATUS")) {
-                    return statusSortPriority(v);
-                }
-
-                if(v === undefined || v === null || v === "") return "";
-                let str = String(v).trim();
-                
-                if(colUpper === "NOTA" || colUpper.includes("PROGRESSO") || colUpper === "KM" || colUpper === "VALOR" || colUpper === "#") {
-                    let num = parseFloat(str.replace(/[^0-9.-]+/g,""));
-                    return isNaN(num) ? -999999 : num; // Joga pra baixo se não for número validado
+                const colUpper = colName.toUpperCase().trim();
+                if (colUpper.includes("STATUS")) return statusSortPriority(v);
+                if (v === undefined || v === null || v === "") return "";
+                const str = String(v).trim();
+                if (colUpper === "NOTA" || colUpper.includes("PROGRESSO") || colUpper === "KM" || colUpper === "VALOR" || colUpper === "#") {
+                    const num = parseFloat(str.replace(/[^0-9.-]+/g, ""));
+                    return isNaN(num) ? -999999 : num;
                 }
                 return str.toUpperCase();
             };
-
             appData[tabKey].rows.sort((a, b) => {
-                let pA = parseVal(a[colName]);
-                let pB = parseVal(b[colName]);
-                
-                // Joga os vazios sempre para o final da lista (não se aplica à coluna STATUS, que já tem prioridade própria)
-                if(pA === "" && pB !== "") return 1;
-                if(pB === "" && pA !== "") return -1;
-                if(pA === "" && pB === "") return 0;
-
+                const pA = parseVal(a[colName]);
+                const pB = parseVal(b[colName]);
+                if (pA === "" && pB !== "") return 1;
+                if (pB === "" && pA !== "") return -1;
+                if (pA === "" && pB === "") return 0;
                 if (pA < pB) return currentSort.dir === 'asc' ? -1 : 1;
                 if (pA > pB) return currentSort.dir === 'asc' ? 1 : -1;
                 return 0;
             });
-            
             autoSave();
-            renderAllTabs();
-            showTab(tabKey);
+            renderAll();
         }
 
         // ==========================================
@@ -763,124 +1809,64 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#39;");
         }
+        // Texto que vai dentro de '...' num onclick
+        function escapeAttr(str) { return escapeHtml(String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); }
 
         // ==========================================
-        // LÓGICA DAS CÉLULAS (Medalhas, Status, Barras)
+        // CÉLULAS (fases, status, medalhas, texto editável)
         // ==========================================
         function renderCell(tabKey, row, colName) {
-            let val = row[colName] !== undefined ? row[colName] : "";
-            let safeVal = escapeHtml(val);
-            let colUpper = colName.toUpperCase().trim();
-            
-            // STATUS
-            if (colUpper.includes("STATUS")) {
-                const statuses = ["CONCLUIDO", "ABERTO", "AGUARDANDO", ""];
-                let v = val.toString().toUpperCase().trim();
-                if(v === "CONCLUÍDO") v = "CONCLUIDO";
-                
-                let select = `<select class="status-select ${getStatusClass(v)}" onchange="updateData('${tabKey}', '${row.id}', '${colName}', this.value); this.className='status-select ' + getStatusClass(this.value)">`;
-                statuses.forEach(s => {
-                    let text = s === "" ? "SELECIONE" : s;
-                    select += `<option value="${s}" ${v === s ? 'selected' : ''}>${text}</option>`;
+            const val = row[colName] !== undefined ? row[colName] : "";
+            const safeVal = escapeHtml(val);
+            const c = cols(tabKey);
+            const colUpper = colName.toUpperCase().trim();
+
+            if (colName === c.status) {
+                const v = normStatus(val);
+                let select = `<select class="status-select ${getStatusClass(v)}" aria-label="Status" onchange="setStatus('${tabKey}', '${row.id}', this.value)">`;
+                ["ABERTO", "AGUARDANDO", "", "CONCLUIDO"].forEach(s => {
+                    select += `<option value="${s}" ${v === s ? 'selected' : ''}>${STATUS_LABEL[s].toUpperCase()}</option>`;
                 });
-                select += `</select>`;
-                return select;
+                if (!["ABERTO", "AGUARDANDO", "", "CONCLUIDO"].includes(v)) select += `<option value="${safeVal}" selected>${safeVal}</option>`;
+                return select + `</select>`;
             }
-            
-            // PROGRESSO (slider arrastável, sem digitação)
-            if (colUpper.includes("PROGRESSO")) {
-                let num = parseInt(val) || 0;
-                return `
-                    <div class="progress-wrapper">
-                        <input type="range" class="progress-slider" min="0" max="100" step="5" value="${num}"
-                            style="--progress-pct:${num}%;"
-                            oninput="this.style.setProperty('--progress-pct', this.value + '%'); this.nextElementSibling.textContent = this.value + '%';"
-                            onchange="handleProgressChange('${tabKey}', '${row.id}', '${colName}', this.value)">
-                        <span class="progress-value">${num}%</span>
-                    </div>
-                `;
+
+            if (colName === c.prog) {
+                const ph = rowPhase(tabKey, row);
+                let segs = '';
+                for (let n = 1; n <= 4; n++) segs += `<button class="seg${n <= ph ? ' on' : ''}" onclick="setPhase('${tabKey}','${row.id}',${n})" aria-label="Fase ${n} de 4${n <= ph ? ', concluída' : ''}"></button>`;
+                return `<div class="phase-wrap"><div class="segs">${segs}</div><span class="phase-label">${ph === 4 ? 'Zerado' : 'Fase ' + ph + '/4'}</span>${ph < 4 ? `<button class="btn-3d btn-w btn-xs" onclick="advancePhase('${tabKey}','${row.id}')">+1 fase</button>` : ''}</div>`;
             }
-            
-            // NOTA (Medalhas de Ouro, Prata, Bronze)
-            if (colUpper === "NOTA") {
-                let numVal = parseFloat(val);
-                
-                if (!isNaN(numVal) && val !== "") {
-                    if (numVal === 10) {
-                        return `<span class="nota-medal nota-ouro" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText.replace(/[^0-9.]/g, '').trim())">🥇 ${escapeHtml(numVal)}</span>`;
-                    } else if (numVal >= 9) {
-                        return `<span class="nota-medal nota-prata" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText.replace(/[^0-9.]/g, '').trim())">🥈 ${escapeHtml(numVal)}</span>`;
-                    } else if (numVal >= 7 && numVal < 9) {
-                        return `<span class="nota-medal nota-bronze" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText.replace(/[^0-9.]/g, '').trim())">🥉 ${escapeHtml(numVal)}</span>`;
-                    }
+
+            if (colName === c.nota) {
+                const n = rowNota(tabKey, row);
+                const rr = rarity(n);
+                if (!isNaN(n) && rr !== 'comum') {
+                    return `<span class="medal r-${rr}" contenteditable="true" aria-label="Nota" onblur="setNota('${tabKey}', '${row.id}', this.innerText)">${escapeHtml(n)}</span>`;
                 }
+                return `<span class="editable-cell" contenteditable="true" aria-label="Nota" onblur="setNota('${tabKey}', '${row.id}', this.innerText)">${safeVal}</span>`;
             }
-            
-            // CÉLULA PADRÃO (Texto editável)
-            let itemClass = colUpper === "ITEM" ? "editable-cell cell-item-name" : "editable-cell";
-            return `<span class="${itemClass}" contenteditable="true" onblur="updateData('${tabKey}', '${row.id}', '${colName}', this.innerText)">${safeVal}</span>`;
+
+            const itemClass = colName === c.item ? "editable-cell cell-item-name" : "editable-cell";
+            return `<span class="${itemClass}" contenteditable="true" aria-label="${escapeHtml(colName)}" onblur="updateData('${tabKey}', '${row.id}', '${escapeAttr(colName)}', this.innerText)">${safeVal}</span>`;
         }
 
         function getStatusClass(val) {
-            let v = val.toString().toUpperCase().trim();
-            if (v === "CONCLUIDO" || v === "REALIZADO") return "status-concluido";
+            const v = normStatus(val);
+            if (v === "CONCLUIDO") return "status-concluido";
             if (v === "ABERTO") return "status-aberto";
-            if (v === "AGUARDANDO" || v === "STAND BY") return "status-aguardando";
+            if (v === "AGUARDANDO") return "status-aguardando";
             return "status-na";
         }
 
         // ==========================================
-        // ATUALIZAÇÃO E REGRAS DE NEGÓCIO
+        // ATUALIZAÇÃO DE TEXTO
         // ==========================================
         function updateData(tabKey, rowId, colName, value) {
-            let row = appData[tabKey].rows.find(r => r.id === rowId);
+            const row = findRow(tabKey, rowId);
             if (row && row[colName] !== value) {
                 row[colName] = value;
                 autoSave();
-                
-                // Se atualizou nota, re-renderiza para processar a medalha
-                if(colName.toUpperCase().trim() === "NOTA") {
-                    renderAllTabs();
-                    showTab(tabKey);
-                }
-            }
-        }
-
-        // Função Especial para Progresso (Dispara Animação e Status)
-        function handleProgressChange(tabKey, rowId, colName, value) {
-            let row = appData[tabKey].rows.find(r => r.id === rowId);
-            if (row) {
-                let num = parseInt(value) || 0;
-                if(num > 100) num = 100;
-                row[colName] = num.toString();
-                autoSave();
-
-                let statusCol = appData[tabKey].columns.find(c => c.toUpperCase().includes("STATUS"));
-                if (statusCol) {
-                    if (num === 100) {
-                        // Chegou a 100%: marca como concluído
-                        if (row[statusCol] !== "CONCLUIDO" && row[statusCol] !== "REALIZADO") {
-                            row[statusCol] = "CONCLUIDO";
-                            triggerConfetti();
-                        }
-                    } else if (num > 0) {
-                        // Qualquer progresso entre 1% e 99%: marca como aberto (em andamento)
-                        row[statusCol] = "ABERTO";
-                    }
-                }
-                renderAllTabs();
-                showTab(tabKey);
-            }
-        }
-
-        function triggerConfetti() {
-            if(typeof confetti === "function") {
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#6C5CE7', '#16A34A', '#F59E0B', '#DB2777']
-                });
             }
         }
 
@@ -893,10 +1879,8 @@
             event.preventDefault();
             const tr = document.getElementById('tr-' + rowId);
             if (!tr) return;
-
             dragState = { tabKey, tr, tbody: tr.parentElement, pointerId: event.pointerId };
             tr.classList.add('dragging');
-
             document.addEventListener('pointermove', onDragMove);
             document.addEventListener('pointerup', onDragEnd);
             document.addEventListener('pointercancel', onDragEnd);
@@ -905,11 +1889,9 @@
         function onDragMove(event) {
             if (!dragState) return;
             event.preventDefault();
-
             const { tr, tbody } = dragState;
             const y = event.clientY;
             const siblings = Array.from(tbody.children).filter(el => el !== tr);
-
             for (const sib of siblings) {
                 const rect = sib.getBoundingClientRect();
                 if (y > rect.top && y < rect.bottom) {
@@ -923,98 +1905,109 @@
         function onDragEnd() {
             if (!dragState) return;
             const { tabKey, tr, tbody } = dragState;
-
             tr.classList.remove('dragging');
             document.removeEventListener('pointermove', onDragMove);
             document.removeEventListener('pointerup', onDragEnd);
             document.removeEventListener('pointercancel', onDragEnd);
 
-            // Aplica a nova ordem visual (do DOM) de volta pro array de dados
-            const newOrderIds = Array.from(tbody.children).map(el => el.id.replace('tr-', ''));
+            // Reordena só os itens visíveis, mantendo no lugar os que o filtro esconde
+            // (antes, arrastar com filtro ativo apagava os itens escondidos)
+            const newOrderIds = Array.from(tbody.children).map(el => el.id.replace('tr-', '')).filter(Boolean);
             const tabData = appData[tabKey];
             const rowsById = {};
             tabData.rows.forEach(r => { rowsById[r.id] = r; });
-            tabData.rows = newOrderIds.map(id => rowsById[id]).filter(Boolean);
+            const visible = new Set(newOrderIds);
+            const positions = [];
+            tabData.rows.forEach((r, i) => { if (visible.has(r.id)) positions.push(i); });
+            const reordered = newOrderIds.map(id => rowsById[id]).filter(Boolean);
+            if (reordered.length === positions.length) {
+                const rows = tabData.rows.slice();
+                positions.forEach((p, i) => { rows[p] = reordered[i]; });
+                tabData.rows = rows;
+            }
 
-            // Conta como uma ordenação manual: a ordem padrão por status não deve mais sobrescrever essa aba
+            // Conta como uma ordenação manual: a ordem padrão por status não sobrescreve mais essa aba
             sortConfig[tabKey] = { col: '__manual_drag__', dir: 'asc' };
-
             autoSave();
             dragState = null;
         }
 
         // ==========================================
-        // AÇÕES DA TABELA (Duplicar, Excluir, Adicionar)
+        // AÇÕES DA LISTA (Duplicar, Excluir, Adicionar)
         // ==========================================
         function duplicateRow(tabKey, rowId) {
             const tabData = appData[tabKey];
-            const originalRow = tabData.rows.find(r => r.id === rowId);
+            const originalRow = findRow(tabKey, rowId);
             if (originalRow) {
-                let newRow = JSON.parse(JSON.stringify(originalRow));
+                const newRow = JSON.parse(JSON.stringify(originalRow));
                 newRow.id = "id_" + Date.now();
-                
-                let index = tabData.rows.findIndex(r => r.id === rowId);
+                delete newRow.zeradoEm;
+                const index = tabData.rows.findIndex(r => r.id === rowId);
                 tabData.rows.splice(index + 1, 0, newRow);
-                
                 autoSave();
-                renderAllTabs();
-                showTab(tabKey);
+                renderAll();
             }
         }
 
         function deleteRow(tabKey, rowId) {
-            if(confirm("Tem certeza que deseja excluir este item?")) {
+            if (confirm("Tem certeza que deseja excluir este item?")) {
                 appData[tabKey].rows = appData[tabKey].rows.filter(r => r.id !== rowId);
                 autoSave();
-                renderAllTabs();
-                showTab(tabKey);
+                renderAll();
             }
         }
 
         function openAddModal(tabKey) {
             currentModalTab = tabKey;
             const tabData = appData[tabKey];
-            document.getElementById('modalTitle').innerText = `Novo em: ${tabData.title}`;
-            
-            let formHtml = `<form id="addForm">`;
-            tabData.columns.forEach(col => {
-                let colU = col.toUpperCase().trim();
-                formHtml += `<div class="mb-3"><label class="form-label">${col}</label>`;
-                
-                if (colU.includes("STATUS")) {
-                    formHtml += `<select class="form-select" id="input-${col}">
-                                    <option value="ABERTO">ABERTO</option>
-                                    <option value="AGUARDANDO">AGUARDANDO</option>
-                                    <option value="CONCLUIDO">CONCLUÍDO</option>
+            const c = cols(tabKey);
+            document.getElementById('modalTitle').innerText = `Novo item em ${world(tabKey).name}`;
+            let formHtml = `<form id="addForm" onsubmit="event.preventDefault(); saveNewItem();">`;
+            tabData.columns.forEach((col, i) => {
+                const id = `input-${i}`;
+                formHtml += `<div class="mb-3"><label class="form-label" for="${id}" style="font-weight:700">${escapeHtml(col === c.prog ? 'Fase' : col)}</label>`;
+                if (col === c.status) {
+                    formHtml += `<select class="form-select" id="${id}">
+                                    <option value="AGUARDANDO">Na fila</option>
+                                    <option value="ABERTO">Em jogo</option>
+                                    <option value="">Novo</option>
+                                    <option value="CONCLUIDO">Zerado</option>
                                  </select>`;
-                } else if (colU.includes("PROGRESSO")) {
-                    formHtml += `<input type="number" class="form-control" id="input-${col}" value="0" min="0" max="100">`;
+                } else if (col === c.prog) {
+                    formHtml += `<select class="form-select" id="${id}">
+                                    <option value="0">Ainda não comecei</option>
+                                    <option value="25">Fase 1 de 4</option>
+                                    <option value="50">Fase 2 de 4</option>
+                                    <option value="75">Fase 3 de 4</option>
+                                 </select>`;
                 } else {
-                    formHtml += `<input type="text" class="form-control" id="input-${col}">`;
+                    formHtml += `<input type="text" class="form-control" id="${id}">`;
                 }
-                
                 formHtml += `</div>`;
             });
             formHtml += `</form>`;
-            
             document.getElementById('modalBody').innerHTML = formHtml;
-            new bootstrap.Modal(document.getElementById('addModal')).show();
+            const modal = new bootstrap.Modal(document.getElementById('addModal'));
+            modal.show();
+            setTimeout(() => { const f = document.getElementById('input-0'); if (f) f.focus(); }, 400);
         }
 
         function saveNewItem() {
             const tabData = appData[currentModalTab];
-            let newRow = { id: "id_" + Date.now() }; 
-            
-            tabData.columns.forEach(col => {
-                newRow[col] = document.getElementById(`input-${col}`).value;
+            const c = cols(currentModalTab);
+            const newRow = { id: "id_" + Date.now() };
+            tabData.columns.forEach((col, i) => {
+                newRow[col] = document.getElementById(`input-${i}`).value;
             });
-            
+            if (c.status && normStatus(newRow[c.status]) === 'CONCLUIDO') {
+                if (c.prog) newRow[c.prog] = '100';
+                newRow.zeradoEm = todayStr();
+            }
+            touch(newRow);
+            const before = snapshot();
             tabData.rows.push(newRow);
-            autoSave();
-            
             bootstrap.Modal.getInstance(document.getElementById('addModal')).hide();
-            renderAllTabs();
-            showTab(currentModalTab);
+            commit(before, null);
         }
 
         // ==========================================
@@ -1024,19 +2017,17 @@
 
         function autoSave() {
             localStorage.setItem('dashboard2026_data_v6', JSON.stringify(appData));
-
             const btn = document.getElementById('btnSave');
             if (cloudReady && cloudRef) {
                 cloudRef.set(appData).catch((err) => {
                     console.warn('Falha ao sincronizar com a nuvem; fica salvo local e tenta de novo na próxima alteração.', err);
                 });
-                btn.innerHTML = '<i class="bi bi-cloud-check-fill"></i> Sincronizado na nuvem';
+                btn.textContent = 'Sincronizado';
             } else {
-                btn.innerHTML = '<i class="bi bi-cloud-slash"></i> Salvo só neste aparelho';
+                btn.textContent = 'Salvo neste aparelho';
             }
             btn.style.display = 'block';
             btn.style.opacity = '1';
-
             clearTimeout(autoSaveIndicatorTimeout);
             autoSaveIndicatorTimeout = setTimeout(() => {
                 btn.style.opacity = '0';
@@ -1045,10 +2036,10 @@
         }
 
         function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ dados: appData, jogo: gameState }));
             const a = document.createElement('a');
             a.href = dataStr;
-            a.download = "backup_dashboard_2026_final.json";
+            a.download = "backup_dashboard_2026.json";
             document.body.appendChild(a);
             a.click();
             a.remove();

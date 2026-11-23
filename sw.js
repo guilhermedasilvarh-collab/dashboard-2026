@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard2026-cache-v2';
+const CACHE_NAME = 'dashboard2026-cache-v3';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
