@@ -1,0 +1,17 @@
+{
+  "name": "Forja — fitness gamificado",
+  "short_name": "Forja",
+  "description": "Treino, dieta e hábitos em formato de jogo: 12 semanas, 4 fases, 4 chefões",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0E1014",
+  "theme_color": "#0E1014",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
